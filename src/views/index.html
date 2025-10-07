@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="es-MX" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Shop</title>
+    <meta name="description" content="Tienda de skyns, armas, accesorios de Fortnite">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00BFFF',
+                        secondary: '#0080FF',
+                        dark: '#0a192f',
+                        darker: '#020617',
+                        unsc: '#00BFFF',
+                        'unsc-dark': '#003366',
+                        'glass-bg': 'rgba(10, 25, 47, 0.5)'
+                    },
+                    fontFamily: {
+                        'orbitron': ['"Orbitron"', 'monospace'],
+                        'sans': ['"Orbitron"', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'unsc': '0 0 20px rgba(0, 191, 255, 0.5)',
+                        'unsc-strong': '0 0 30px rgba(0, 191, 255, 0.8)'
+                    },
+                    backdropBlur: {
+                        'unsc': '10px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Fondo estelar UNSC */
+        #starfield-container, #stars, #stars2, #stars3 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        #stars::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 20% 20%, rgba(0,191,255,0.08) 0%, transparent 25%),
+                        radial-gradient(ellipse at 80% 70%, rgba(0,128,255,0.06) 0%, transparent 30%);
+            mix-blend-mode: screen;
+            filter: blur(30px) saturate(120%);
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            width: var(--size, 2px);
+            height: var(--size, 2px);
+            opacity: var(--opacity, 0.9);
+            transform: translate3d(0,0,0);
+            will-change: transform, opacity;
+            box-shadow: 0 0 calc(var(--size, 2px) * 2) rgba(0,191,255,0.6);
+            animation: twinkle var(--twinkle, 3s) linear infinite;
+        }
+
+        .star.cold { background: #00BFFF; box-shadow: 0 0 6px rgba(0,191,255,0.8); }
+        .star.warm { background: #0080FF; box-shadow: 0 0 8px rgba(0,128,255,0.6); }
+
+        @keyframes twinkle {
+            0% { opacity: calc(var(--opacity,0.9) * 0.3); transform: scale(0.9); }
+            50% { opacity: var(--opacity,0.95); transform: scale(1.15); }
+            100% { opacity: calc(var(--opacity,0.9) * 0.4); transform: scale(0.95); }
+        }
+
+        /* Glassmorphism UNSC */
+        .glass-card {
+            background: rgba(10, 25, 47, 0.6);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 191, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .glass-header {
+            background: rgba(0, 25, 47, 0.8);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        /* Efectos hover UNSC */
+        .unsc-hover:hover {
+            box-shadow: 0 0 25px rgba(0, 191, 255, 0.8);
+            border-color: #00BFFF;
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+
+        /* Botones UNSC */
+        .btn-unsc {
+            background: linear-gradient(45deg, #00BFFF, #0080FF);
+            border: 1px solid #00BFFF;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-unsc:hover {
+            background: linear-gradient(45deg, #0080FF, #0066CC);
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.8);
+            transform: translateY(-1px);
+        }
+
+        /* Headers UNSC */
+        .unsc-title {
+            background: linear-gradient(45deg, #00BFFF, #0080FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Input fields UNSC */
+        .input-unsc {
+            background: rgba(0, 30, 60, 0.7) !important;
+            border: 1px solid rgba(0, 191, 255, 0.5) !important;
+            color: #fff !important;
+            backdrop-filter: blur(5px);
+        }
+
+        .input-unsc:focus {
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.7);
+            border-color: #00BFFF !important;
+            outline: none;
+        }
+
+        .input-unsc::placeholder {
+            color: #a0c4ff;
+            opacity: 0.7;
+        }
+
+        /* Scrollbar UNSC */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 25, 47, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #00BFFF, #0080FF);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #0080FF, #0066CC);
+        }
+
+        /* Cards de productos UNSC */
+        .product-card {
+            background: rgba(10, 25, 47, 0.4);
+            border: 1px solid rgba(0, 191, 255, 0.2);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .product-card:hover {
+            border-color: #00BFFF;
+            box-shadow: 0 8px 32px rgba(0, 191, 255, 0.3);
+            transform: translateY(-4px);
+        }
+
+        /* Uniformar cards regulares */
+        .bg-gray-900 {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+        }
+
+        .product-card .p-6,
+        .bg-gray-900 .p-4 {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Asegurar que todas las imágenes tengan el mismo tamaño */
+        .product-card img,
+        .bg-gray-900 img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            object-position: center;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Loader UNSC */
+        .unsc-loader {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 40%, rgba(0,0,0,0.85), rgba(0,0,0,0.95));
+            z-index: 2000;
+            transition: opacity 400ms ease, visibility 400ms ease;
+        }
+
+        .loader-ring {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,191,255,0.3);
+            background: conic-gradient(from 0deg, rgba(0,191,255,0.5), rgba(0,191,255,0.1) 60%, rgba(255,255,255,0.05));
+            animation: loader-rotate 1.6s linear infinite;
+        }
+
+        @keyframes loader-rotate {
+            to { transform: rotate(360deg); }
+        }
+
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+    <body class="bg-black text-gray-200 font-orbitron min-h-screen">
+    <!-- UNSC Loader -->
+    <div id="unsc-loader" class="unsc-loader">
+        <div class="flex flex-col items-center gap-4">
+            <div class="loader-ring"></div>
+            <div class="text-unsc text-sm uppercase tracking-wider">INICIALIZANDO...</div>
+        </div>
+    </div>
+
+    <!-- Fondo estelar UNSC -->
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+
+    <!-- Header UNSC -->
+    <header class="sticky top-0 z-50 glass-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo (link to home) -->
+                <a href="index.html" class="flex items-center space-x-3 group">
+                    <div class="w-12 h-12 glass-card flex items-center justify-center unsc-hover">
+                        <i data-feather="zap" class="text-unsc w-10 h-10"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold unsc-title group-hover:opacity-90">Game Shop</h1>
+                        <p class="text-xs text-blue-300 uppercase tracking-wider">Autorizado</p>
+                    </div>
+                </a>
+                
+                <!-- Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <nav class="flex space-x-6">
+                        <a href="index.html" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="home" class="mr-2 w-4 h-4"></i> Inicio
+                        </a>
+                        <a href="fortnite.html" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="target" class="mr-2 w-4 h-4"></i> Fortnite
+                        </a>
+                        <a href="callofduty.html" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="crosshair" class="mr-2 w-4 h-4"></i> Call of Duty
+                        </a>
+                        <a href="login.html" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="user" class="mr-2 w-4 h-4"></i> Login
+                        </a>
+                    </nav>
+                    
+                    <!-- Search Terminal -->
+                    <div class="relative">
+                        <input type="text" placeholder="BUSCAR EQUIPO..." class="input-unsc rounded-lg py-2 px-4 pl-10 w-64 text-sm uppercase">
+                        <i data-feather="search" class="absolute left-3 top-2.5 text-unsc w-4 h-4"></i>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 text-blue-200 hover:text-unsc transition relative">
+                        <i data-feather="bookmark"></i>
+                        <span class="absolute -top-1 -right-1 bg-unsc text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">3</span>
+                    </button>
+                    <button @click="toggleCart" class="p-2 text-blue-200 hover:text-unsc transition relative">
+                        <i data-feather="package"></i>
+                        <span x-show="cart.length > 0" class="absolute -top-1 -right-1 bg-unsc text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold" x-text="cart.length"></span>
+                    </button>
+                    <button class="md:hidden p-2 text-blue-200 hover:text-unsc transition">
+                        <i data-feather="menu"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section UNSC -->
+    <section class="relative py-20">
+        <div class="container mx-auto px-4">
+            <div class="glass-card p-12 text-center max-w-4xl mx-auto">
+                <div class="flex justify-center mb-6">
+                    <div class="w-20 h-20 glass-card flex items-center justify-center unsc-hover">
+                        <i data-feather="zap" class="text-unsc w-10 h-10"></i>
+                    </div>
+                </div>
+                <h2 class="text-4xl md:text-6xl font-bold mb-6 unsc-title">
+                 GAME SHOP
+                </h2>
+                <p class="text-xl md:text-2xl mb-8 text-blue-200 font-medium">
+                    BIENVENIDO A GAME SHOP TU DESTINO DE JUEGOS, AQUI ENCONTRARAS Y PODRAS ADQUIRIR DIVERSAS SKINS, ARMAS Y ACCESORIOS DE FORTNITE
+                </p>
+                <p class="text-lg mb-8 text-blue-300 max-w-2xl mx-auto">
+                        Explora nuestra amplia gama de productos y mejora tu experiencia de juego.
+                </p>
+                <button class="btn-unsc px-8 py-4 rounded-lg text-lg">
+                    <i data-feather="shield" class="inline mr-2"></i>
+                    EXPLORAR
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- UNSC Daily Requisitions -->
+    <section class="py-16 container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+            <h2 class="text-4xl font-bold mb-6 md:mb-0 unsc-title">
+                OFERTAS DIARIAS
+            </h2>
+            <div class="glass-card px-8 py-4 flex items-center space-x-4">
+                <i data-feather="clock" class="text-unsc"></i>
+                <div class="text-center font-orbitron text-2xl font-bold" x-data="countdown()" x-init="initCountdown()">
+                    <span x-text="hours" class="text-unsc"></span>:<span x-text="minutes" class="text-unsc"></span>:<span x-text="seconds" class="text-unsc"></span>
+                </div>
+                <span class="text-sm text-blue-300 uppercase tracking-wider">TIEMPO RESTANTE</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- UNSC Product Card 1 -->
+            <div class="product-card rounded-xl overflow-hidden unsc-hover">
+                <div class="relative">
+                    <img src="img/jefem.png" alt="Skin Legendaria Fortnite" class="w-full h-48 object-cover">
+                    <div class="absolute top-3 left-3 bg-red-600 text-white text-xs px-3 py-1 rounded-full font-bold uppercase">-30%</div>
+                    <div class="absolute top-3 right-3 bg-unsc text-black text-xs px-3 py-1 rounded-full font-bold uppercase">LEGENDARIO</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-6 flex flex-col justify-between flex-1">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <span class="text-xs bg-blue-600 px-3 py-1 rounded-full uppercase font-bold">INUSUAL</span>
+                            <span class="text-xs bg-purple-600 px-3 py-1 rounded-full uppercase font-bold">EPICO</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-blue-100 uppercase tracking-wide">Billie Eilish</h3>
+                        <p class="text-blue-300 text-sm mb-4 uppercase">Tematica Verde Splash</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-blue-400 line-through text-sm">$299 MXN</span>
+                            <p class="text-xl font-bold text-unsc">$209 MXN</p>
+                        </div>
+                        <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- More product cards... -->
+            <!-- Product Card 2 -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group glow-hover">
+                <div class="relative">
+                    <img src="img/jefemb.png" alt="Mando Pro Xbox" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-15%</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4 flex flex-col justify-between flex-1">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-xs bg-green-600 px-2 py-1 rounded">XBOX</span>
+                            <span class="text-xs bg-yellow-600 px-2 py-1 rounded">LEGENDARIO</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-blue-100 uppercase tracking-wide">GERRERO MANDALORIANO</h3>
+                        <p class="text-gray-400 text-sm mb-3">Edición especial Star Wars</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$1,599 MXN</span>
+                            <p class="text-xl font-bold text-primary">$1,359 MXN</p>
+                        </div>
+                        <button @click="addToCart({
+                            id: 2,
+                            name: 'Mando Pro Xbox',
+                            price: 1359,
+                            image: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=300&fit=crop'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 3 -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group glow-hover">
+                <div class="relative">
+                    <img src="img/videoframe_0.png" alt="Skin Freezer Fortnite" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-15%</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4 flex flex-col justify-between flex-1">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-xs bg-purple-600 px-2 py-1 rounded">LEGENDARIO</span>
+                            <span class="text-xs bg-blue-600 px-2 py-1 rounded">ÉPICO</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-blue-100 uppercase tracking-wide">FREEZER</h3>
+                        <p class="text-gray-400 text-sm mb-3">Skin exclusiva Dragon Ball Z</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$350 MXN</span>
+                            <p class="text-xl font-bold text-primary">$299 MXN</p>
+                        </div>
+                        <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 4 -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group glow-hover">
+                <div class="relative">
+                    <img src="img/himiko.png" alt="Skin Himiko Fortnite" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-20%</div>
+                   <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4 flex flex-col justify-between flex-1">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-xs bg-pink-600 px-2 py-1 rounded">RARO</span>
+                            <span class="text-xs bg-orange-600 px-2 py-1 rounded">ANIME</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-blue-100 uppercase tracking-wide">HIMIKO TOGA</h3>
+                        <p class="text-gray-400 text-sm mb-3">Skin exclusiva My Hero Academia</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$220 MXN</span>
+                            <p class="text-xl font-bold text-primary">$176 MXN</p>
+                        </div>
+                        <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 5 -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group glow-hover">
+                <div class="relative">
+                    <img src="img/kingkong.png" alt="Skin King Kong Fortnite" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-25%</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4 flex flex-col justify-between flex-1">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-xs bg-yellow-600 px-2 py-1 rounded">LEGENDARIO</span>
+                            <span class="text-xs bg-brown-600 px-2 py-1 rounded">TITAN</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-blue-100 uppercase tracking-wide">KING KONG</h3>
+                        <p class="text-gray-400 text-sm mb-3">Skin exclusiva MonsterVerse</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$550 MXN</span>
+                            <p class="text-xl font-bold text-primary">$413 MXN</p>
+                        </div>
+                        <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 6 -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group glow-hover">
+                <div class="relative">
+                    <img src="img/mike.png" alt="Skin Michael Myers Fortnite" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-30%</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4 flex flex-col justify-between flex-1">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-xs bg-red-600 px-2 py-1 rounded">TERROR</span>
+                            <span class="text-xs bg-gray-600 px-2 py-1 rounded">ÉPICO</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-blue-100 uppercase tracking-wide">MICHAEL MYERS</h3>
+                        <p class="text-gray-400 text-sm mb-3">Skin exclusiva Halloween</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$413 MXN</span>
+                            <p class="text-xl font-bold text-primary">$289 MXN</p>
+                        </div>
+                        <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 7 -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group glow-hover">
+                <div class="relative">
+                    <img src="img/gokub.png" alt="Skin Goku Black Fortnite" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-35%</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4 flex flex-col justify-between flex-1">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-xs bg-purple-600 px-2 py-1 rounded">LEGENDARIO</span>
+                            <span class="text-xs bg-black px-2 py-1 rounded text-white">SAIYAN</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-blue-100 uppercase tracking-wide">GOKU BLACK</h3>
+                        <p class="text-gray-400 text-sm mb-3">Skin exclusiva Dragon Ball Super</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$606 MXN</span>
+                            <p class="text-xl font-bold text-primary">$394 MXN</p>
+                        </div>
+                        <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 8 -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group glow-hover">
+                <div class="relative">
+                    <img src="img/mrbeast.png" alt="Skin Mr Beast Fortnite" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-20%</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4 flex flex-col justify-between flex-1">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-xs bg-green-600 px-2 py-1 rounded">YOUTUBER</span>
+                            <span class="text-xs bg-yellow-600 px-2 py-1 rounded">ÉPICO</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-blue-100 uppercase tracking-wide">MR BEAST</h3>
+                        <p class="text-gray-400 text-sm mb-3">Skin exclusiva Creator</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$330 MXN</span>
+                            <p class="text-xl font-bold text-primary">$264 MXN</p>
+                        </div>
+                        <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- UNSC Special Operations -->
+    <section class="py-20 container mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-5xl font-bold mb-6 unsc-title">
+                OPERACIONES ESPECIALES
+            </h2>
+            <p class="text-xl text-blue-200 max-w-3xl mx-auto uppercase tracking-wide">
+                Ofertas limitadas, bundles exclusivos y eventos únicos disponibles por tiempo limitado
+            </p>
+        </div>
+
+        <!-- Featured Bundle -->
+        <div class="glass-card p-8 rounded-xl mb-12 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-unsc/10 via-blue-500/5 to-transparent rounded-full -translate-y-32 translate-x-32"></div>
+            <div class="relative z-10">
+                <div class="flex flex-col lg:flex-row items-center gap-12">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-4 mb-6">
+                            <span class="text-xs bg-red-600 text-white px-4 py-2 rounded-full font-bold uppercase animate-pulse">MEGA OFERTA</span>
+                            <span class="text-xs bg-unsc text-black px-4 py-2 rounded-full font-bold uppercase">BUNDLE ÉLITE</span>
+                        </div>
+                        <h3 class="text-4xl font-bold mb-4 text-blue-100 uppercase tracking-wide">PACK LEGENDARIO COMPLETO</h3>
+                        <p class="text-blue-300 mb-6 text-lg leading-relaxed">
+                            El bundle definitivo que incluye 8 skins legendarias, 12 armas exclusivas, accesorios únicos y 2,000 V-Bucks de regalo.
+                        </p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <div class="glass-card p-4 text-center">
+                                <div class="text-2xl font-bold text-unsc mb-1">8</div>
+                                <div class="text-xs text-blue-300 uppercase">Skins Legendarias</div>
+                            </div>
+                            <div class="glass-card p-4 text-center">
+                                <div class="text-2xl font-bold text-unsc mb-1">12</div>
+                                <div class="text-xs text-blue-300 uppercase">Armas Épicas</div>
+                            </div>
+                            <div class="glass-card p-4 text-center">
+                                <div class="text-2xl font-bold text-unsc mb-1">25</div>
+                                <div class="text-xs text-blue-300 uppercase">Accesorios</div>
+                            </div>
+                            <div class="glass-card p-4 text-center">
+                                <div class="text-2xl font-bold text-unsc mb-1">2K</div>
+                                <div class="text-xs text-blue-300 uppercase">V-Bucks Gratis</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-6 mb-6">
+                            <div>
+                                <span class="text-gray-400 line-through text-2xl">$2,499 MXN</span>
+                                <div class="text-4xl font-bold text-unsc">$899 MXN</div>
+                                <span class="text-green-400 text-sm font-bold">AHORRO DE $1,600</span>
+                            </div>
+                            <div class="glass-card px-4 py-2">
+                                <div class="text-red-400 text-sm uppercase tracking-wider">Termina en:</div>
+                                <div class="text-unsc font-bold text-xl" id="bundle-countdown">23:45:12</div>
+                            </div>
+                        </div>
+
+                        <button class="btn-unsc px-8 py-4 rounded-lg text-lg w-full md:w-auto">
+                            <i data-feather="zap" class="inline mr-2"></i>
+                            OBTENER BUNDLE AHORA
+                        </button>
+                    </div>
+                    
+                    <div class="flex-1 grid grid-cols-2 gap-4">
+                        <img src="img/jefem.png" alt="Bundle Item" class="w-full h-42 object-cover rounded-lg border border-unsc/30">
+                        <img src="img/videoframe_0.png" alt="Bundle Item" class="w-full h-42 object-cover rounded-lg border border-unsc/30">
+                        <img src="img/himiko.png" alt="Bundle Item" class="w-full h-42 object-cover rounded-lg border border-unsc/30">
+                        <img src="img/gokub.png" alt="Bundle Item" class="w-full h-42 object-cover rounded-lg border border-unsc/30">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Sales Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <!-- Flash Sale 1 -->
+            <div class="glass-card p-6 rounded-xl relative group unsc-hover">
+                <div class="absolute top-4 left-4 bg-red-600 text-white text-xs px-3 py-1 rounded-full font-bold uppercase animate-bounce">
+                    FLASH SALE
+                </div>
+                <div class="absolute top-4 right-4 text-red-400 text-sm font-bold" id="flash-timer-1">05:23</div>
+                
+                <div class="mt-8 mb-4">
+                    <h4 class="text-xl font-bold text-blue-100 mb-2 uppercase">SKIN BATTLE ROYALE</h4>
+                    <p class="text-blue-300 text-sm mb-4">Pack de 3 skins exclusivas de temporada</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <span class="text-gray-400 line-through">$450 MXN</span>
+                            <div class="text-2xl font-bold text-unsc">$199 MXN</div>
+                        </div>
+                        <div class="text-green-400 text-sm font-bold">-56%</div>
+                    </div>
+                    
+                    <button class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition w-full font-bold uppercase">
+                        COMPRAR YA
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flash Sale 2 -->
+            <div class="glass-card p-6 rounded-xl relative group unsc-hover">
+                <div class="absolute top-4 left-4 bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-bold uppercase">
+                    ÚLTIMA OPORTUNIDAD
+                </div>
+                <div class="absolute top-4 right-4 text-red-400 text-sm font-bold" id="flash-timer-2">12:45</div>
+                
+                <div class="mt-8 mb-4">
+                    <h4 class="text-xl font-bold text-blue-100 mb-2 uppercase">ARSENAL COMPLETO</h4>
+                    <p class="text-blue-300 text-sm mb-4">5 armas legendarias + munición infinita</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <span class="text-gray-400 line-through">$800 MXN</span>
+                            <div class="text-2xl font-bold text-unsc">$349 MXN</div>
+                        </div>
+                        <div class="text-green-400 text-sm font-bold">-56%</div>
+                    </div>
+                    
+                    <button class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition w-full font-bold uppercase">
+                        APROVECHAR OFERTA
+                    </button>
+                </div>
+            </div>
+
+            <!-- Daily Reward -->
+            <div class="glass-card p-6 rounded-xl relative group unsc-hover border-2 border-yellow-500/50">
+                <div class="absolute top-4 left-4 bg-yellow-600 text-black text-xs px-3 py-1 rounded-full font-bold uppercase">
+                    RECOMPENSA DIARIA
+                </div>
+                <div class="absolute top-4 right-4">
+                    <i data-feather="gift" class="text-yellow-500 w-6 h-6"></i>
+                </div>
+                
+                <div class="mt-8 mb-4">
+                    <h4 class="text-xl font-bold text-blue-100 mb-2 uppercase">REGALO DEL DÍA</h4>
+                    <p class="text-blue-300 text-sm mb-4">Reclama tu recompensa diaria gratuita</p>
+                    
+                    <div class="glass-card p-4 mb-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-yellow-500 mb-1">500</div>
+                            <div class="text-xs text-blue-300 uppercase">V-Bucks Gratis</div>
+                        </div>
+                    </div>
+                    
+                    <button class="bg-yellow-600 hover:bg-yellow-700 text-black px-6 py-2 rounded-lg transition w-full font-bold uppercase">
+                        RECLAMAR GRATIS
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Events -->
+        <div class="glass-card p-8 rounded-xl">
+            <h3 class="text-3xl font-bold text-center mb-8 unsc-title">EVENTOS EN VIVO</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Event 1 -->
+                <div class="flex items-center gap-6 p-6 glass-card rounded-lg">
+                    <div class="w-16 h-16 glass-card flex items-center justify-center">
+                        <i data-feather="calendar" class="text-unsc w-8 h-8"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-lg font-bold text-blue-100 mb-2 uppercase">TORNEO SEMANAL</h4>
+                        <p class="text-blue-300 text-sm mb-2">Compite y gana skins exclusivas</p>
+                        <div class="flex items-center gap-4">
+                            <span class="text-unsc text-sm font-bold">PREMIO: 5,000 V-Bucks</span>
+                            <span class="text-xs bg-green-600 px-2 py-1 rounded uppercase">ACTIVO</span>
+                        </div>
+                    </div>
+                    <button class="btn-unsc px-4 py-2 rounded-lg text-sm">
+                        PARTICIPAR
+                    </button>
+                </div>
+
+                <!-- Event 2 -->
+                <div class="flex items-center gap-6 p-6 glass-card rounded-lg">
+                    <div class="w-16 h-16 glass-card flex items-center justify-center">
+                        <i data-feather="star" class="text-unsc w-8 h-8"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-lg font-bold text-blue-100 mb-2 uppercase">EVENTO ESPECIAL</h4>
+                        <p class="text-blue-300 text-sm mb-2">Skins de colaboración limitada</p>
+                        <div class="flex items-center gap-4">
+                            <span class="text-unsc text-sm font-bold">SOLO HOY</span>
+                            <span class="text-xs bg-red-600 px-2 py-1 rounded uppercase">ÚLTIMAS HORAS</span>
+                        </div>
+                    </div>
+                    <button class="btn-unsc px-4 py-2 rounded-lg text-sm">
+                        VER OFERTAS
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Games -->
+    <section class="py-12 container mx-auto px-4">
+        <h2 class="text-3xl font-bold mb-8">
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-neon-pink to-primary">DESTACADOS POR JUEGO</span>
+        </h2>
+        
+        <div class="mb-6 flex space-x-4 overflow-x-auto pb-2 scrollbar-hide">
+            <button class="whitespace-nowrap px-4 py-2 bg-primary text-white rounded-full">Pupulares</button>
+            <button class="whitespace-nowrap px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full transition">Celebridades</button>
+            <button class="whitespace-nowrap px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full transition">Gorillaz </button>
+            <button class="whitespace-nowrap px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full transition">Marvel</button>
+            <button class="whitespace-nowrap px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full transition">Dragon Ball Z</button>
+            <button class="whitespace-nowrap px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full transition">Star Wars</button>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Product cards for Fortnite -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/saexocazadora.png" alt="Skin Fortnite" class="w-full h-48 object-cover">
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-blue-600 px-2 py-1 rounded">FORTNITE</span>
+                        <span class="text-xs bg-purple-600 px-2 py-1 rounded">ÉPICA</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">SAEXO CAZADORA</h3>
+                    <p class="text-gray-400 text-sm mb-3">Edición especial Fortnite Battle Royale</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$249 MXN</p>
+                        <button @click="addToCart({
+                            id: 9,
+                            name: 'Skin Raven Fortnite',
+                            price: 249,
+                            image: 'https://fortnite-archive.fandom.com/wiki/Special:Filepath/Raven_-_Outfit_-_Fortnite.png'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skin Valorant Reyna -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/persefone.png" alt="Skin Valorant" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">NUEVO</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-red-600 px-2 py-1 rounded">FORTNITE</span>
+                        <span class="text-xs bg-orange-600 px-2 py-1 rounded">LEGENDARIA</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">PERSÉFONE</h3>
+                    <p class="text-gray-400 text-sm mb-3">Skin mítica griega exclusiva</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$399 MXN</p>
+                        <button @click="addToCart({
+                            id: 17,
+                            name: 'Skin Reyna Valorant',
+                            price: 399,
+                            image: 'https://static.wikia.nocookie.net/valorant/images/d/d0/Reyna_artwork.png'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skin CS:GO AK-47 -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/titan.png" alt="Skin Titan" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">MECH</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-blue-600 px-2 py-1 rounded">FORTNITE</span>
+                        <span class="text-xs bg-purple-600 px-2 py-1 rounded">GIGANTESCO</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">TITÁN</h3>
+                    <p class="text-gray-400 text-sm mb-3">Skin mecha gigante exclusiva</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$599 MXN</p>
+                        <button @click="addToCart({
+                            id: 18,
+                            name: 'AK-47 Redline',
+                            price: 1299,
+                            image: 'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyUI6dNygJHJsYH3iw3n-UU5N2imJISdcFQ6aVvZ_AS5yOnpgpC1ucudm3pj6D5iuygH/360fx360f'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skin League of Legends -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/Gorillaz.png" alt="Skin Gorillaz" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-yellow-600 text-white text-xs px-2 py-1 rounded">MÚSICA</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-yellow-600 px-2 py-1 rounded">FORTNITE</span>
+                        <span class="text-xs bg-gray-600 px-2 py-1 rounded">MÚSICA</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">GORILLAZ</h3>
+                    <p class="text-gray-400 text-sm mb-3">Skin colaboración musical exclusiva</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$329 MXN</p>
+                        <button @click="addToCart({
+                            id: 19,
+                            name: 'Yasuo High Noon',
+                            price: 329,
+                            image: 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yasuo_0.jpg'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skin Apex Legends -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/gwenpool.png" alt="Skin Gwenpool" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded">LEGENDARIA</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-orange-600 px-2 py-1 rounded">FORTNITE</span>
+                        <span class="text-xs bg-purple-600 px-2 py-1 rounded">MARVEL</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">GWENPOOL</h3>
+                    <p class="text-gray-400 text-sm mb-3">Skin colaboración Marvel Comics</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$459 MXN</p>
+                        <button @click="addToCart({
+                            id: 20,
+                            name: 'Wraith Liberator',
+                            price: 459,
+                            image: 'https://static.wikia.nocookie.net/apexlegends_gamepedia_en/images/thumb/4/48/Wraith_-_The_Liberator.png/1200px-Wraith_-_The_Liberator.png'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skin Overwatch -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/billy.png" alt="Billy Saw" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-1 rounded">TERROR</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-orange-600 px-2 py-1 rounded">FORTNITE</span>
+                        <span class="text-xs bg-blue-600 px-2 py-1 rounded">HORROR</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">BILLY SAW</h3>
+                    <p class="text-gray-400 text-sm mb-3">Skin terrorífica de película SAW</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$279 MXN</p>
+                        <button @click="addToCart({
+                            id: 21,
+                            name: 'Mercy Pink',
+                            price: 279,
+                            image: 'https://d15f34w2p8l1cc.cloudfront.net/overwatch/4d89f6fd8e7620bc5ac1b31c43b51de4a46e10d62b23c1547bb0b9b88dd86d99.png'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skin Rocket League -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/pollo.png" alt="El Pollo" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">DIVERTIDO</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-blue-600 px-2 py-1 rounded">FORTNITE</span>
+                        <span class="text-xs bg-green-600 px-2 py-1 rounded">ANIMAL</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">EL POLLO</h3>
+                    <p class="text-gray-400 text-sm mb-3">Skin divertida de pollo loco</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$189 MXN</p>
+                        <button @click="addToCart({
+                            id: 22,
+                            name: 'Octane Titanium',
+                            price: 189,
+                            image: 'https://rocket-league.com/content/media/items/avatar/220px/4c9b35b5e01606936919.png'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skin Fall Guys -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/midas.png" alt="Midas" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-15%</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-pink-600 px-2 py-1 rounded">FORTNITE</span>
+                        <span class="text-xs bg-red-600 px-2 py-1 rounded">DORADO</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">MIDAS</h3>
+                    <p class="text-gray-400 text-sm mb-3">Skin legendaria Rey Midas dorado</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$149 MXN</span>
+                            <p class="text-xl font-bold text-primary">$127 MXN</p>
+                        </div>
+                        <button @click="addToCart({
+                            id: 23,
+                            name: 'Godzilla Costume',
+                            price: 127,
+                            image: 'https://static.wikia.nocookie.net/fallguysultimateknockout_gamepedia_en/images/5/54/Godzilla_Costume_Featured.png'
+                        })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+
+            
+            <!-- More Fortnite products... -->
+            <!-- Call of Duty products -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/callofduty/cer_bundle_billboard_13321_necro.png" alt="CoD Bundle Necromancer" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">NUEVO</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">CALL OF DUTY</span>
+                        <span class="text-xs bg-purple-600 px-2 py-1 rounded">BUNDLE</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">NECROMANCER PACK</h3>
+                    <p class="text-gray-400 text-sm mb-3">Lote especial con planos oscuros y operador</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$459 MXN</p>
+                        <button @click="addToCart({ id: 31, name: 'Necromancer Pack (CoD)', price: 459, image: 'img/callofduty/cer_bundle_billboard_13321_necro.png' })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/callofduty/cer_bundle_billboard_11373_cdl_l.png" alt="CoD CDL Champions" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">E-SPORTS</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">CALL OF DUTY</span>
+                        <span class="text-xs bg-indigo-600 px-2 py-1 rounded">CDL</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">CDL CHAMPIONS</h3>
+                    <p class="text-gray-400 text-sm mb-3">Paquete competitivo de la Call of Duty League</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$349 MXN</p>
+                        <button @click="addToCart({ id: 32, name: 'CDL Champions (CoD)', price: 349, image: 'img/callofduty/cer_bundle_billboard_11373_cdl_l.png' })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/callofduty/cer_bundle_billboard_11375_fight.png" alt="CoD Fight Night" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">-20%</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">CALL OF DUTY</span>
+                        <span class="text-xs bg-pink-600 px-2 py-1 rounded">OPERADOR</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">FIGHT NIGHT</h3>
+                    <p class="text-gray-400 text-sm mb-3">Operador temático con acabados exclusivos</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through text-sm">$375 MXN</span>
+                            <p class="text-xl font-bold text-primary">$299 MXN</p>
+                        </div>
+                        <button @click="addToCart({ id: 33, name: 'Fight Night (CoD)', price: 299, image: 'img/callofduty/cer_bundle_billboard_11375_fight.png' })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-primary transition group">
+                <div class="relative">
+                    <img src="img/callofduty/cer_bundle_billboard_13333_redac.png" alt="CoD Red Action" class="w-full h-48 object-cover">
+                    <div class="absolute top-2 left-2 bg-yellow-600 text-white text-xs px-2 py-1 rounded">ARMA</div>
+                    <button class="absolute top-2 right-2 bg-gray-900/50 hover:bg-red-600 text-white p-2 rounded-full transition">
+                        <i data-feather="heart"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">CALL OF DUTY</span>
+                        <span class="text-xs bg-red-600 px-2 py-1 rounded">PLANO</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-neon transition">RED ACTION</h3>
+                    <p class="text-gray-400 text-sm mb-3">Plano de arma con trazadoras rojas</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xl font-bold text-primary">$199 MXN</p>
+                        <button @click="addToCart({ id: 34, name: 'Red Action (CoD)', price: 199, image: 'img/callofduty/cer_bundle_billboard_13333_redac.png' })" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition flex items-center">
+                            <i data-feather="shopping-cart" class="mr-2 w-4"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+            </div>
+             
+        </div>
+    </section>
+
+    <!-- Call of Duty Wide Cards Section -->
+    <section class="py-16 container mx-auto px-4">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+            <h2 class="text-4xl font-bold unsc-title">CALL OF DUTY - SELECCIÓN ESPECIAL</h2>
+            <p class="text-blue-300 uppercase tracking-wider text-sm">Tarjetas más anchas tipo billboard</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Wide CoD Card 1 -->
+            <div class="glass-card rounded-xl overflow-hidden unsc-hover grid md:grid-cols-2 gap-6 items-center">
+                <div class="relative">
+                    <img src="img/callofduty/cer_bundle_billboard_15320_moder.png" alt="Moder Warfare Pack" class="w-full h-56 md:h-64 object-cover">
+                    <div class="absolute top-3 left-3 bg-red-600 text-white text-xs px-3 py-1 rounded-full font-bold uppercase">-30%</div>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">CALL OF DUTY</span>
+                        <span class="text-xs bg-blue-600 px-2 py-1 rounded">MODERN WARFARE</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-blue-100 mb-2 uppercase tracking-wide">OPERACIÓN MODER</h3>
+                    <p class="text-blue-300 text-sm mb-4">Paquete premium con operador, planos y emblemas animados.</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-gray-400 line-through">$599 MXN</span>
+                            <div class="text-2xl font-bold text-unsc">$419 MXN</div>
+                        </div>
+                        <button class="btn-unsc px-6 py-3 rounded-lg"><i data-feather="shopping-cart" class="inline mr-2"></i>Comprar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wide CoD Card 2 -->
+            <div class="glass-card rounded-xl overflow-hidden unsc-hover grid md:grid-cols-2 gap-6 items-center">
+                <div class="relative order-2 md:order-1">
+                    <img src="img/callofduty/cer_bundle_billboard_15318_mil_s.png" alt="Mil-Sim Pack" class="w-full h-56 md:h-64 object-cover">
+                    <div class="absolute top-3 left-3 bg-yellow-600 text-black text-xs px-3 py-1 rounded-full font-bold uppercase">EXCLUSIVO</div>
+                </div>
+                <div class="p-6 order-1 md:order-2">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">CALL OF DUTY</span>
+                        <span class="text-xs bg-green-600 px-2 py-1 rounded">MIL-SIM</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-blue-100 mb-2 uppercase tracking-wide">PAQUETE MIL-SIM</h3>
+                    <p class="text-blue-300 text-sm mb-4">Estilo táctico con camuflajes y operador de élite.</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-unsc">$379 MXN</div>
+                        </div>
+                        <button class="btn-unsc px-6 py-3 rounded-lg"><i data-feather="shopping-cart" class="inline mr-2"></i>Añadir</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wide CoD Card 3 -->
+            <div class="glass-card rounded-xl overflow-hidden unsc-hover grid md:grid-cols-2 gap-6 items-center lg:col-span-2">
+                <div class="relative">
+                    <img src="img/callofduty/cer_bundle_billboard_13336_bulld.png" alt="Bulldozer Bundle" class="w-full h-64 md:h-72 object-cover">
+                    <div class="absolute top-3 left-3 bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-bold uppercase">LEGENDARIO</div>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">CALL OF DUTY</span>
+                        <span class="text-xs bg-red-600 px-2 py-1 rounded">OPERADOR</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-blue-100 mb-2 uppercase tracking-wide">BULLDOZER BUNDLE</h3>
+                    <p class="text-blue-300 text-sm mb-4">Incluye operador Bulldozer, planos brutales y remates.</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-unsc">$499 MXN</div>
+                        </div>
+                        <button class="btn-unsc px-6 py-3 rounded-lg"><i data-feather="shopping-cart" class="inline mr-2"></i>Comprar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+    <!-- Footer UNSC -->
+    <footer class="glass-card border-t border-unsc/30 py-16 mt-20">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 glass-card flex items-center justify-center unsc-hover">
+                            <i data-feather="zap" class="text-unsc w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold unsc-title">GAME SHOP</h3>
+                    </div>
+                    <p class="text-blue-300 mb-4 uppercase tracking-wide">Tu destino definitivo para skins, armas y accesorios de Fortnite</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="p-2 glass-card hover:bg-unsc/20 text-blue-200 hover:text-unsc transition rounded-lg">
+                            <i data-feather="facebook"></i>
+                        </a>
+                        <a href="#" class="p-2 glass-card hover:bg-unsc/20 text-blue-200 hover:text-unsc transition rounded-lg">
+                            <i data-feather="twitter"></i>
+                        </a>
+                        <a href="#" class="p-2 glass-card hover:bg-unsc/20 text-blue-200 hover:text-unsc transition rounded-lg">
+                            <i data-feather="instagram"></i>
+                        </a>
+                        <a href="#" class="p-2 glass-card hover:bg-unsc/20 text-blue-200 hover:text-unsc transition rounded-lg">
+                            <i data-feather="twitch"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4 text-unsc uppercase tracking-wider">CATÁLOGO</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="user" class="mr-2 w-4 h-4"></i> SKINS
+                        </a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="target" class="mr-2 w-4 h-4"></i> ARMAS
+                        </a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="package" class="mr-2 w-4 h-4"></i> ACCESORIOS
+                        </a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="music" class="mr-2 w-4 h-4"></i> MÚSICA
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4 text-unsc uppercase tracking-wider">SOPORTE</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="headphones" class="mr-2 w-4 h-4"></i> CONTACTO
+                        </a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="help-circle" class="mr-2 w-4 h-4"></i> FAQ
+                        </a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="truck" class="mr-2 w-4 h-4"></i> ENVÍOS
+                        </a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="credit-card" class="mr-2 w-4 h-4"></i> PAGOS
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4 text-unsc uppercase tracking-wider">TÉRMINOS</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="file-text" class="mr-2 w-4 h-4"></i> CONDICIONES
+                        </a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="shield" class="mr-2 w-4 h-4"></i> PRIVACIDAD
+                        </a></li>
+                        <li><a href="#" class="text-blue-200 hover:text-unsc transition uppercase tracking-wide text-sm font-bold flex items-center">
+                            <i data-feather="alert-circle" class="mr-2 w-4 h-4"></i> AVISO LEGAL
+                        </a></li>
+                    </ul>
+                    <div class="glass-card p-3 mt-4">
+                        <p class="text-blue-300 text-xs uppercase tracking-wider">⚠️ TIENDA NO OFICIAL</p>
+                        <p class="text-gray-400 text-xs mt-1">No afiliado con Epic Games o Fortnite</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-unsc/30 mt-12 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                        <div class="w-8 h-8 glass-card flex items-center justify-center">
+                            <i data-feather="zap" class="text-unsc w-4 h-4"></i>
+                        </div>
+                        <p class="text-blue-300 text-sm uppercase tracking-wider font-bold">
+                            © 2025 GAME SHOP - AUTORIZADO
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-xs text-gray-400 uppercase tracking-wider">POWERED BY</span>
+                        <span class="text-unsc text-sm font-bold uppercase tracking-wider">UNSC TECHNOLOGY</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+</body>
+<script>
+// Oculta el loader de "INICIALIZANDO..." después de 2 segundos y restaura el fondo estelar animado
+document.addEventListener('DOMContentLoaded', function() {
+    // Loader
+    var loader = document.getElementById('unsc-loader');
+        if (loader) {
+            setTimeout(function() {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                }, 400);
+            }, 2500);
+        }
+    // Fondo estelar animado
+    function createStar(layer, opts = {}) {
+        var star = document.createElement('div');
+        star.className = 'star';
+        if (opts.variant) star.classList.add(opts.variant);
+        star.style.setProperty('--size', (opts.size || (Math.random() * 2 + 1)) + 'px');
+        star.style.setProperty('--opacity', (opts.opacity || (Math.random() * 0.6 + 0.4)));
+        star.style.setProperty('--twinkle', (opts.twinkle || (Math.random() * 4 + 2)) + 's');
+        star.style.left = (Math.random() * 100) + '%';
+        star.style.top = (Math.random() * 100) + '%';
+        return star;
+    }
+    function populate(layer, count, variantChance) {
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < count; i++) {
+            var variant = Math.random() < variantChance ? (Math.random() < 0.7 ? 'cold' : 'warm') : null;
+            frag.appendChild(createStar(layer, { variant: variant }));
+        }
+        layer.appendChild(frag);
+    }
+    var layers = [
+        document.getElementById('stars'),
+        document.getElementById('stars2'),
+        document.getElementById('stars3')
+    ];
+    var density = Math.max(1, Math.min(2.2, (window.innerWidth * window.innerHeight) / (1280 * 720)));
+    var counts = [120, 80, 40].map(function(n) { return Math.round(n * density); });
+    if (layers[0]) populate(layers[0], counts[0], 0.2);
+    if (layers[1]) populate(layers[1], counts[1], 0.3);
+    if (layers[2]) populate(layers[2], counts[2], 0.4);
+    // Feather icons
+    if (window.feather) feather.replace();
+});
+</script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var countdown = document.querySelector('[data-countdown]');
+        if (!countdown) {
+            // Busca los spans dentro del bloque de tiempo restante
+            var hoursSpan = document.querySelector('span[x-text="hours"]');
+            var minutesSpan = document.querySelector('span[x-text="minutes"]');
+            var secondsSpan = document.querySelector('span[x-text="seconds"]');
+            if (hoursSpan && minutesSpan && secondsSpan) {
+                var now = new Date();
+                var endTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+                function updateCountdown() {
+                    var now = new Date();
+                    var diff = endTime - now;
+                    if (diff <= 0) {
+                        hoursSpan.textContent = '00';
+                        minutesSpan.textContent = '00';
+                        secondsSpan.textContent = '00';
+                        return;
+                    }
+                    var hours = Math.floor(diff / (1000 * 60 * 60));
+                    var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    hoursSpan.textContent = String(hours).padStart(2, '0');
+                    minutesSpan.textContent = String(minutes).padStart(2, '0');
+                    secondsSpan.textContent = String(seconds).padStart(2, '0');
+                }
+                updateCountdown();
+                setInterval(updateCountdown, 1000);
+            }
+        }
+    });
+</script>
+</html>
