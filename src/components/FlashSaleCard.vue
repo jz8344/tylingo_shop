@@ -8,7 +8,7 @@
     <div class="mt-8 mb-4">
       <h4 class="text-xl font-bold text-blue-100 mb-2 uppercase">{{ sale.title }}</h4>
       <p class="text-blue-300 text-sm mb-4">{{ sale.description }}</p>
-      
+      <!---->
       <div class="flex items-center justify-between mb-4">
         <div>
           <span class="text-gray-400 line-through text-lg">${{ sale.originalPrice }} MXN</span>
