@@ -6,17 +6,15 @@
   
   <section class="py-16 container mx-auto px-4">
     <div class="text-center mb-10">
-      <h1 class="text-4xl font-bold unsc-title">Disney Infinity</h1>
-      <p class="text-blue-300 mt-2">Productos del universo Disney</p>
+      <h1 class="text-4xl font-bold unsc-title">Universo Disney Gaming</h1>
+      <p class="text-blue-300 mt-2">Disney Infinity, Kingdom Hearts, Epic Mickey, Los Increíbles y más</p>
     </div>
 
-    <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
-      <p class="mt-4 text-blue-300 text-lg">Cargando productos de Disney Infinity...</p>
+      <p class="mt-4 text-blue-300 text-lg">Cargando productos Disney...</p>
     </div>
 
-    <!-- Error State -->
     <div v-else-if="error" class="glass-card p-8 text-center">
       <p class="text-red-400 mb-4">{{ error }}</p>
       <button @click="loadDisneyProducts" class="btn-unsc px-6 py-3">
@@ -25,7 +23,6 @@
       </button>
     </div>
     
-    <!-- Products Grid -->
     <div v-else-if="disneyProducts.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <FortniteProductCard
         v-for="product in disneyProducts"
@@ -35,9 +32,8 @@
       />
     </div>
 
-    <!-- Empty State -->
     <div v-else class="glass-card p-12 text-center">
-      <p class="text-blue-300 text-lg">No hay productos de Disney Infinity disponibles.</p>
+      <p class="text-blue-300 text-lg">No hay productos Disney disponibles.</p>
       <p class="text-blue-400 mt-2">Agrega productos desde el panel de administración.</p>
     </div>
   </section>
@@ -49,7 +45,7 @@ import { getProductsByGame } from '@/services/productService'
 import { useCartStore } from '@/stores/cart'
 
 export default {
-  name: 'DisneyInfinity',
+  name: 'DisneyGames',
   components: {
     FortniteProductCard
   },
@@ -63,11 +59,45 @@ export default {
       try {
         loading.value = true
         error.value = null
-        console.log('Cargando productos de Disney Infinity desde API...')
+        console.log('Cargando productos Disney desde API...')
         
-        const data = await getProductsByGame('disney infinity')
+        const disneyGames = [
+          'disney infinity',
+          'kingdom hearts',
+          'epic mickey',
+          'los increibles',
+          'los increíbles',
+          'increibles',
+          'increíbles',
+          'moana',
+          'frozen',
+          'mickey',
+          'disney',
+          'toy story',
+          'pixar',
+          'enredados',
+          'rapunzel',
+          'bella',
+          'cenicienta',
+          'ariel'
+        ]
         
-        disneyProducts.value = data.map(product => ({
+        let allProducts = []
+        
+        for (const game of disneyGames) {
+          try {
+            const data = await getProductsByGame(game)
+            allProducts = [...allProducts, ...data]
+          } catch (err) {
+            console.log(`No se encontraron productos para: ${game}`)
+          }
+        }
+        
+        const uniqueProducts = Array.from(
+          new Map(allProducts.map(item => [item.id, item])).values()
+        )
+        
+        disneyProducts.value = uniqueProducts.map(product => ({
           id: product.id,
           name: product.nombre,
           description: product.descripcion || '',
@@ -83,9 +113,9 @@ export default {
           ]
         }))
         
-        console.log('Productos de Disney Infinity cargados:', disneyProducts.value.length)
+        console.log('Productos Disney cargados:', disneyProducts.value.length)
       } catch (err) {
-        error.value = 'Error al cargar productos de Disney Infinity'
+        error.value = 'Error al cargar productos Disney'
         console.error('Error:', err)
       } finally {
         loading.value = false

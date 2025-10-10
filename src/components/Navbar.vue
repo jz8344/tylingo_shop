@@ -29,7 +29,7 @@
             <i data-feather="star" class="mr-2 w-4"></i>Anime Skins
           </router-link>
           <router-link to="/disney-infinity" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
-            <i data-feather="zap" class="mr-2 w-4"></i>Disney Infinity
+            <i data-feather="zap" class="mr-2 w-4"></i>Disney Games
           </router-link>
           <router-link to="/events" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
             <i data-feather="map-pin" class="mr-2 w-4"></i>Eventos
@@ -71,7 +71,7 @@
             <i data-feather="star" class="mr-2 w-4"></i>Anime Skins
           </router-link>
           <router-link to="/disney-infinity" @click="toggleMobileMenu" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
-            <i data-feather="zap" class="mr-2 w-4"></i>Disney Infinity
+            <i data-feather="zap" class="mr-2 w-4"></i>Disney Games
           </router-link>
           <router-link to="/events" @click="toggleMobileMenu" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
             <i data-feather="map-pin" class="mr-2 w-4"></i>Eventos
