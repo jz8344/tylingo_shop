@@ -20,6 +20,31 @@ const router = createRouter({
       component: () => import('@/views/CallOfDuty.vue')
     },
     {
+      path: '/digital-coins',
+      name: 'DigitalCoins',
+      component: () => import('@/views/DigitalCoins.vue')
+    },
+    {
+      path: '/anime-skins',
+      name: 'AnimeSkins',
+      component: () => import('@/views/AnimeSkins.vue')
+    },
+    {
+      path: '/disney-infinity',
+      name: 'DisneyInfinity',
+      component: () => import('@/views/DisneyInfinity.vue')
+    },
+    {
+      path: '/test-mercadopago',
+      name: 'TestMercadoPago',
+      component: () => import('@/views/TestMercadoPago.vue')
+    },
+    {
+      path: '/cart',
+      name: 'Cart',
+      component: () => import('@/views/Cart.vue')
+    },
+    {
       path: '/login',
       name: 'Login',
       component: () => import('@/views/Login.vue')

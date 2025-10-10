@@ -46,8 +46,23 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        <!-- Products Grid -->
+      <!-- Loading State -->
+      <div v-if="loading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-unsc"></div>
+        <p class="mt-4 text-blue-300 text-lg">Cargando ofertas desde la base de datos...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="glass-card p-8 text-center">
+        <p class="text-red-400 mb-4">{{ error }}</p>
+        <button @click="loadAllData" class="btn-unsc px-6 py-3">
+          <i data-feather="refresh-cw" class="inline mr-2"></i>
+          Reintentar
+        </button>
+      </div>
+
+      <!-- Products Grid -->
+      <div v-else-if="dailyProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         <ProductCard
           v-for="product in dailyProducts"
           :key="product.id"
@@ -55,6 +70,12 @@
           @add-to-cart="addToCart"
           @toggle-favorite="toggleFavorite"
         />
+      </div>
+
+      <!-- Empty State -->
+      <div v-else class="glass-card p-12 text-center">
+        <p class="text-blue-300 text-lg">No hay ofertas disponibles en este momento.</p>
+        <p class="text-blue-400 mt-2">Vuelve pronto para ver nuevas ofertas.</p>
       </div>
     </section>
 
@@ -193,16 +214,28 @@
     <section class="py-16 container mx-auto px-4">
       <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
         <h2 class="text-4xl font-bold unsc-title">CALL OF DUTY - SELECCIÓN ESPECIAL</h2>
-        <p class="text-blue-300 uppercase tracking-wider text-sm">Tarjetas más anchas tipo billboard</p>
+        <p class="text-blue-300 uppercase tracking-wider text-sm">Productos desde la base de datos</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Loading COD -->
+      <div v-if="loadingCOD" class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-unsc"></div>
+        <p class="mt-4 text-blue-300">Cargando productos Call of Duty...</p>
+      </div>
+
+      <!-- COD Products Grid -->
+      <div v-else-if="codProducts.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <WideProductCard
           v-for="product in codProducts"
           :key="product.id"
           :product="product"
           @add-to-cart="addToCart"
         />
+      </div>
+
+      <!-- Empty COD -->
+      <div v-else class="glass-card p-8 text-center">
+        <p class="text-blue-300">No hay productos de Call of Duty disponibles.</p>
       </div>
     </section>
   </div>
@@ -216,6 +249,10 @@ import FlashSaleCard from '@/components/FlashSaleCard.vue'
 import LiveEvent from '@/components/LiveEvent.vue'
 import WideProductCard from '@/components/WideProductCard.vue'
 
+// ========== IMPORTAR SERVICIOS API ==========
+import { getDailyDeals, getProductsByGame, getAllProducts } from '@/services/productService'
+import { useCartStore } from '@/stores/cart'
+
 export default {
   name: 'Home',
   components: {
@@ -226,83 +263,103 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const cartStore = useCartStore()
     const selectedCategory = ref('Populares')
     const countdown = ref({ hours: '00', minutes: '00', seconds: '00' })
     let countdownInterval = null
+
+    // ========== ESTADOS DE CARGA ==========
+    const loading = ref(false)
+    const loadingCOD = ref(false)
+    const error = ref(null)
 
     // Categories for filter
     const categories = [
       'Populares', 'Celebridades', 'Gorillaz', 'Marvel', 'Dragon Ball Z', 'Star Wars'
     ]
 
-    // Sample data for daily products
-    const dailyProducts = ref([
-      {
-        id: 1,
-        name: 'Billie Eilish',
-        description: 'Temática Verde Splash',
-        price: 249,
-        originalPrice: 349,
-        discount: 30,
-        image: '/img/jefem.png',
-        rarity: 'LEGENDARIO',
-        game: 'FORTNITE'
-      },
-      {
-        id: 2,
-        name: 'GUERRERO MANDALORIANO',
-        description: 'Edición especial Star Wars',
-        price: 299,
-        originalPrice: 399,
-        discount: 15,
-        image: '/img/jefemb.png',
-        rarity: 'ÉPICO',
-        game: 'FORTNITE'
-      },
-      // ... más productos
-    ])
+    // ========== DATOS DESDE API (inicialmente vacíos) ==========
+    const dailyProducts = ref([])
+    const codProducts = ref([])
 
-    // Flash sales data
+    // Flash sales data (estos se mantienen estáticos)
     const flashSales = ref([
-      {
-        id: 1,
-        title: 'SKIN BATTLE ROYALE',
-        description: 'Pack de 3 skins exclusivas de temporada',
-        price: 199,
-        originalPrice: 449,
-        discount: 56,
-        timeLeft: '05:23',
-        type: 'FLASH SALE'
-      },
-      // ... más flash sales
+      { id: 1, title: 'SKIN BATTLE ROYALE', description: 'Pack de 3 skins exclusivas de temporada', price: 199, originalPrice: 450, discount: 56, timeLeft: '05:23', type: 'FLASH SALE' },
+      { id: 2, title: 'ARSENAL COMPLETO', description: '5 armas legendarias + munición infinita', price: 349, originalPrice: 800, discount: 56, timeLeft: '12:45', type: 'ÚLTIMA OPORTUNIDAD' },
+      { id: 3, title: 'PAQUETE ÉPICO', description: 'Incluye 2 skins épicas y 1 emote exclusivo', price: 149, originalPrice: 300, discount: 50, timeLeft: '08:15', type: 'FLASH SALE' }
     ])
 
-    // Live events data
+    // Live events data (estáticos)
     const liveEvents = ref([
-      {
-        id: 1,
-        title: 'TORNEO SEMANAL',
-        description: 'Compite y gana skins exclusivas',
-        status: 'En progreso',
-        participants: '2,547 jugadores'
-      },
-      // ... más eventos
+      { id: 1, title: 'TORNEO SEMANAL', description: 'Compite y gana skins exclusivas', status: 'ACTIVO', participants: '2,547' },
+      { id: 2, title: 'EVENTO ESPECIAL', description: 'Skins de colaboración limitada', status: 'ÚLTIMAS HORAS', participants: '—' }
     ])
 
-    // COD Products
-    const codProducts = ref([
-      {
-        id: 1,
-        name: 'OPERACIÓN MODER',
-        description: 'Paquete premium con operador, planos y emblemas animados.',
-        price: 599,
-        originalPrice: 849,
-        discount: 30,
-        image: '/img/callofduty/cer_bundle_billboard_15320_moder.png',
-        game: 'CALL OF DUTY'
-      },
-      // ... más productos COD
-    ])
+    // ========== CARGAR DATOS DESDE API ==========
+    async function loadDailyDeals() {
+      try {
+        loading.value = true
+        error.value = null
+        console.log('🔄 Cargando ofertas diarias desde API...')
+        
+        const data = await getDailyDeals()
+        
+        // Mapear datos de la API al formato del componente
+        dailyProducts.value = data.map(product => ({
+          id: product.id,
+          name: product.nombre,
+          description: product.descripcion || '',
+          price: product.precio_oferta || product.precio,
+          originalPrice: product.precio,
+          discount: product.es_oferta ? Math.round(((product.precio - (product.precio_oferta || product.precio)) / product.precio) * 100) : 0,
+          image: product.imagen_url || product.imagen_path || '/img/default.png',
+          rarity: product.rareza?.toUpperCase() || 'COMÚN',
+          game: product.videojuego?.toUpperCase() || 'FORTNITE'
+        }))
+        
+        console.log('✅ Ofertas diarias cargadas:', dailyProducts.value.length, 'productos')
+      } catch (err) {
+        error.value = 'Error al cargar ofertas diarias'
+        console.error('❌ Error cargando ofertas:', err)
+      } finally {
+        loading.value = false
+      }
+    }
+
+    async function loadCODProducts() {
+      try {
+        loadingCOD.value = true
+        console.log('🔄 Cargando productos Call of Duty...')
+        
+        const data = await getProductsByGame('call of duty')
+        
+        codProducts.value = data.slice(0, 3).map(product => ({
+          id: product.id,
+          name: product.nombre,
+          description: product.descripcion || '',
+          price: product.precio_oferta || product.precio,
+          originalPrice: product.precio,
+          discount: product.es_oferta ? Math.round(((product.precio - (product.precio_oferta || product.precio)) / product.precio) * 100) : 0,
+          image: product.imagen_url || product.imagen_path || '/img/default.png',
+          game: 'CALL OF DUTY'
+        }))
+        
+        console.log('✅ Productos COD cargados:', codProducts.value.length, 'productos')
+      } catch (err) {
+        console.error('❌ Error cargando productos COD:', err)
+      } finally {
+        loadingCOD.value = false
+      }
+    }
+
+    async function loadAllData() {
+      console.log('🚀 Cargando todos los datos desde la API...')
+      await Promise.all([
+        loadDailyDeals(),
+        loadCODProducts()
+      ])
+      console.log('✅ Todos los datos cargados exitosamente')
+    }
 
     // Computed properties
     const filteredProducts = computed(() => {
@@ -384,8 +441,21 @@ export default {
     }
 
     const addToCart = (product) => {
-      console.log('Adding to cart:', product)
-      // Implementar lógica del carrito
+      const cartItem = {
+        id: product.id,
+        nombre: product.name,
+        descripcion: product.description || product.name,
+        precio: product.originalPrice || product.price,
+        precio_oferta: product.originalPrice ? product.price : null,
+        videojuego: product.videojuego || 'General',
+        imagen_url: product.image,
+        imagen_path: product.image
+      }
+      
+      const added = cartStore.addToCart(cartItem)
+      if (added) {
+        alert(`✅ ${product.name} agregado al carrito`)
+      }
     }
 
     const toggleFavorite = (product) => {
@@ -408,7 +478,13 @@ export default {
       // Implementar lógica de participación en evento
     }
 
-    onMounted(() => {
+    onMounted(async () => {
+      console.log('🚀 Home.vue montado - Iniciando carga de datos...')
+      
+      // Cargar datos de la API
+      await loadAllData()
+      
+      // Inicializar UI
       initCountdown()
       createStarfield()
       
@@ -433,12 +509,16 @@ export default {
       liveEvents,
       codProducts,
       filteredProducts,
+      loading,
+      loadingCOD,
+      error,
       exploreProducts,
       addToCart,
       toggleFavorite,
       buyBundle,
       purchaseFlashSale,
-      participateEvent
+      participateEvent,
+      loadAllData
     }
   }
 }

@@ -1,12 +1,12 @@
 /* UNSC Game Shop Global Styles */
 
+/* Google Fonts - DEBE IR PRIMERO */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
 /* Configuración de Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
 /* Variables CSS personalizadas */
 :root {
@@ -217,6 +217,18 @@ body {
   object-fit: contain;
   object-position: center;
   background: rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effects específicos por juego */
+.bg-gray-900.hover\:border-cyan-400:hover {
+  border-color: #22d3ee !important;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Badges y tags específicos */
+.bg-brown-600 {
+  background-color: #92400e;
 }
 
 /* Loader UNSC */

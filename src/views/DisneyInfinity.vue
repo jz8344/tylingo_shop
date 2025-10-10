@@ -6,29 +6,29 @@
   
   <section class="py-16 container mx-auto px-4">
     <div class="text-center mb-10">
-      <h1 class="text-4xl font-bold unsc-title">Fortnite</h1>
-      <p class="text-blue-300 mt-2">Catálogo desde la base de datos</p>
+      <h1 class="text-4xl font-bold unsc-title">Disney Infinity</h1>
+      <p class="text-blue-300 mt-2">Productos del universo Disney</p>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
-      <p class="mt-4 text-blue-300 text-lg">Cargando productos de Fortnite...</p>
+      <p class="mt-4 text-blue-300 text-lg">Cargando productos de Disney Infinity...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="glass-card p-8 text-center">
       <p class="text-red-400 mb-4">{{ error }}</p>
-      <button @click="loadFortniteProducts" class="btn-unsc px-6 py-3">
+      <button @click="loadDisneyProducts" class="btn-unsc px-6 py-3">
         <i data-feather="refresh-cw" class="inline mr-2"></i>
         Reintentar
       </button>
     </div>
     
     <!-- Products Grid -->
-    <div v-else-if="fortniteProducts.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div v-else-if="disneyProducts.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <FortniteProductCard
-        v-for="product in fortniteProducts"
+        v-for="product in disneyProducts"
         :key="product.id"
         :product="product"
         @add-to-cart="addToCart"
@@ -37,7 +37,7 @@
 
     <!-- Empty State -->
     <div v-else class="glass-card p-12 text-center">
-      <p class="text-blue-300 text-lg">No hay productos de Fortnite disponibles.</p>
+      <p class="text-blue-300 text-lg">No hay productos de Disney Infinity disponibles.</p>
       <p class="text-blue-400 mt-2">Agrega productos desde el panel de administración.</p>
     </div>
   </section>
@@ -47,29 +47,27 @@ import { ref, onMounted } from 'vue'
 import FortniteProductCard from '@/components/FortniteProductCard.vue'
 import { getProductsByGame } from '@/services/productService'
 import { useCartStore } from '@/stores/cart'
-import { useRouter } from 'vue-router'
 
 export default {
-  name: 'Fortnite',
+  name: 'DisneyInfinity',
   components: {
     FortniteProductCard
   },
   setup() {
-    const cartStore = useCartStore()
-    const router = useRouter()
-    const fortniteProducts = ref([])
+    const disneyProducts = ref([])
     const loading = ref(false)
     const error = ref(null)
+    const cartStore = useCartStore()
 
-    async function loadFortniteProducts() {
+    async function loadDisneyProducts() {
       try {
         loading.value = true
         error.value = null
-        console.log('Cargando productos de Fortnite desde API...')
+        console.log('Cargando productos de Disney Infinity desde API...')
         
-        const data = await getProductsByGame('fortnite')
+        const data = await getProductsByGame('disney infinity')
         
-        fortniteProducts.value = data.map(product => ({
+        disneyProducts.value = data.map(product => ({
           id: product.id,
           name: product.nombre,
           description: product.descripcion || '',
@@ -80,14 +78,14 @@ export default {
           newBadge: product.etiqueta === 'NUEVO' ? 'NUEVO' : null,
           specialBadge: product.rareza ? { text: product.rareza.toUpperCase(), class: getRarityClass(product.rareza) } : null,
           tags: [
-            { text: product.videojuego?.toUpperCase() || 'FORTNITE', class: 'bg-blue-600' },
-            { text: product.rareza?.toUpperCase() || 'COMUN', class: getRarityClass(product.rareza || 'comun') }
+            { text: 'DISNEY', class: 'bg-indigo-600' },
+            { text: product.tipo?.toUpperCase() || 'FIGURA', class: 'bg-blue-600' }
           ]
         }))
         
-        console.log('Productos de Fortnite cargados:', fortniteProducts.value.length)
+        console.log('Productos de Disney Infinity cargados:', disneyProducts.value.length)
       } catch (err) {
-        error.value = 'Error al cargar productos de Fortnite'
+        error.value = 'Error al cargar productos de Disney Infinity'
         console.error('Error:', err)
       } finally {
         loading.value = false
@@ -106,14 +104,13 @@ export default {
     }
 
     const addToCart = (product) => {
-      // Convertir el formato del producto para el carrito
       const cartItem = {
         id: product.id,
         nombre: product.name,
         descripcion: product.description || product.name,
         precio: product.originalPrice || product.price,
         precio_oferta: product.originalPrice ? product.price : null,
-        videojuego: 'Fortnite',
+        videojuego: 'Disney Infinity',
         imagen_url: product.image,
         imagen_path: product.image
       }
@@ -121,13 +118,11 @@ export default {
       const added = cartStore.addToCart(cartItem)
       if (added) {
         alert(`✅ ${product.name} agregado al carrito`)
-        // Opcional: redirigir al carrito
-        // router.push('/cart')
       }
     }
 
     onMounted(async () => {
-      await loadFortniteProducts()
+      await loadDisneyProducts()
       createStarField()
       if (window.feather) {
         window.feather.replace()
@@ -167,11 +162,11 @@ export default {
     }
 
     return {
-      fortniteProducts,
+      disneyProducts,
       loading,
       error,
       addToCart,
-      loadFortniteProducts
+      loadDisneyProducts
     }
   }
 }
