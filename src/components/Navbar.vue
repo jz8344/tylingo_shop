@@ -31,6 +31,9 @@
           <router-link to="/disney-infinity" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
             <i data-feather="zap" class="mr-2 w-4"></i>Disney Infinity
           </router-link>
+          <router-link to="/events" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
+            <i data-feather="map-pin" class="mr-2 w-4"></i>Eventos
+          </router-link>
           <router-link to="/cart" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center relative">
             <i data-feather="shopping-cart" class="mr-2 w-4"></i>Carrito
             <span v-if="cartItemCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -69,6 +72,9 @@
           </router-link>
           <router-link to="/disney-infinity" @click="toggleMobileMenu" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
             <i data-feather="zap" class="mr-2 w-4"></i>Disney Infinity
+          </router-link>
+          <router-link to="/events" @click="toggleMobileMenu" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
+            <i data-feather="map-pin" class="mr-2 w-4"></i>Eventos
           </router-link>
           <router-link to="/login" @click="toggleMobileMenu" class="text-blue-200 hover:text-cyan-300 uppercase text-sm font-bold flex items-center">
             <i data-feather="user" class="mr-2 w-4"></i>Login

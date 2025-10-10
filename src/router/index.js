@@ -35,6 +35,11 @@ const router = createRouter({
       component: () => import('@/views/DisneyInfinity.vue')
     },
     {
+      path: '/events',
+      name: 'Events',
+      component: () => import('@/views/Events.vue')
+    },
+    {
       path: '/test-mercadopago',
       name: 'TestMercadoPago',
       component: () => import('@/views/TestMercadoPago.vue')
