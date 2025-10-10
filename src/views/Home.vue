@@ -1,11 +1,9 @@
 <template>
   <div class="home-view">
-    <!-- Fondo estelar UNSC -->
     <div id="stars"></div>
     <div id="stars2"></div>
     <div id="stars3"></div>
 
-    <!-- Hero Section UNSC -->
     <section class="relative py-20">
       <div class="container mx-auto px-4">
         <div class="glass-card p-12 text-center max-w-4xl mx-auto">
@@ -31,7 +29,6 @@
       </div>
     </section>
 
-    <!-- UNSC Daily Requisitions -->
     <section class="py-16 container mx-auto px-4">
       <div class="flex flex-col md:flex-row justify-between items-center mb-12">
         <h2 class="text-4xl font-bold mb-6 md:mb-0 unsc-title">
@@ -46,13 +43,11 @@
         </div>
       </div>
 
-      <!-- Loading State -->
       <div v-if="loading" class="text-center py-12">
         <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-unsc"></div>
         <p class="mt-4 text-blue-300 text-lg">Cargando ofertas desde la base de datos...</p>
       </div>
 
-      <!-- Error State -->
       <div v-else-if="error" class="glass-card p-8 text-center">
         <p class="text-red-400 mb-4">{{ error }}</p>
         <button @click="loadAllData" class="btn-unsc px-6 py-3">
@@ -61,7 +56,6 @@
         </button>
       </div>
 
-      <!-- Products Grid -->
       <div v-else-if="dailyProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         <ProductCard
           v-for="product in dailyProducts"
@@ -72,14 +66,12 @@
         />
       </div>
 
-      <!-- Empty State -->
       <div v-else class="glass-card p-12 text-center">
         <p class="text-blue-300 text-lg">No hay ofertas disponibles en este momento.</p>
         <p class="text-blue-400 mt-2">Vuelve pronto para ver nuevas ofertas.</p>
       </div>
     </section>
 
-    <!-- UNSC Special Operations -->
     <section class="py-20 container mx-auto px-4">
       <div class="text-center mb-16">
         <h2 class="text-5xl font-bold mb-6 unsc-title">
@@ -90,7 +82,6 @@
         </p>
       </div>
 
-      <!-- Featured Bundle -->
       <div class="glass-card p-8 rounded-xl mb-12 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-unsc/10 via-blue-500/5 to-transparent rounded-full -translate-y-32 translate-x-32"></div>
         <div class="relative z-10">
@@ -153,7 +144,6 @@
         </div>
       </div>
 
-      <!-- Flash Sales Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
         <!-- Flash Sales -->
         <FlashSaleCard
@@ -164,7 +154,6 @@
         />
       </div>
 
-      <!-- Live Events -->
       <div class="glass-card p-8 rounded-xl">
         <h3 class="text-3xl font-bold text-center mb-8 unsc-title">EVENTOS EN VIVO</h3>
         
