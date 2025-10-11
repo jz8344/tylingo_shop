@@ -41,7 +41,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import FortniteProductCard from '@/components/FortniteProductCard.vue'
-import { getProductsByGame } from '@/services/productService'
+import { getDisneyProducts } from '@/services/productService'
 import { useCartStore } from '@/stores/cart'
 
 export default {
@@ -59,40 +59,12 @@ export default {
       try {
         loading.value = true
         error.value = null
-        console.log('Cargando productos Disney desde API...')
+        console.log('🔄 Cargando productos Disney desde API optimizada...')
         
-        const disneyGames = [
-          'disney infinity',
-          'kingdom hearts',
-          'epic mickey',
-          'los increibles',
-          'los increíbles',
-          'increibles',
-          'increíbles',
-          'moana',
-          'frozen',
-          'mickey',
-          'disney',
-          'toy story',
-          'pixar',
-          'enredados',
-          'rapunzel',
-          'bella',
-          'cenicienta',
-          'ariel'
-        ]
+        // ✅ UNA SOLA LLAMADA en lugar de 18!
+        const allProducts = await getDisneyProducts()
         
-        let allProducts = []
-        
-        for (const game of disneyGames) {
-          try {
-            const data = await getProductsByGame(game)
-            allProducts = [...allProducts, ...data]
-          } catch (err) {
-            console.log(`No se encontraron productos para: ${game}`)
-          }
-        }
-        
+        // Eliminar duplicados por ID (por si acaso)
         const uniqueProducts = Array.from(
           new Map(allProducts.map(item => [item.id, item])).values()
         )
@@ -109,14 +81,14 @@ export default {
           specialBadge: product.rareza ? { text: product.rareza.toUpperCase(), class: getRarityClass(product.rareza) } : null,
           tags: [
             { text: 'DISNEY', class: 'bg-indigo-600' },
-            { text: product.tipo?.toUpperCase() || 'FIGURA', class: 'bg-blue-600' }
+            { text: product.tipo_producto?.toUpperCase() || 'FIGURA', class: 'bg-blue-600' }
           ]
         }))
         
-        console.log('Productos Disney cargados:', disneyProducts.value.length)
+        console.log('✅ Productos Disney cargados en una sola llamada:', disneyProducts.value.length)
       } catch (err) {
         error.value = 'Error al cargar productos Disney'
-        console.error('Error:', err)
+        console.error('❌ Error:', err)
       } finally {
         loading.value = false
       }

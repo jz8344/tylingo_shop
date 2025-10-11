@@ -34,6 +34,19 @@ export async function getProductsByGame(game) {
 }
 
 /**
+ * Get Disney products (optimized endpoint)
+ * @returns {Promise<Array>}
+ */
+export async function getDisneyProducts() {
+  try {
+    return await get('/productos/disney')
+  } catch (error) {
+    console.error('Error fetching Disney products:', error)
+    throw error
+  }
+}
+
+/**
  * Get featured/destacados products
  * @returns {Promise<Array>}
  */
@@ -76,6 +89,7 @@ export async function searchProducts(query) {
 export default {
   getAllProducts,
   getProductsByGame,
+  getDisneyProducts,
   getFeaturedProducts,
   getDailyDeals,
   searchProducts
