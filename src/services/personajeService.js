@@ -17,7 +17,7 @@ export async function getAllPersonajes() {
     throw error
   }
 }
-
+  
 /**
  * Get single personaje by ID
  * @param {number} id - ID del personaje
