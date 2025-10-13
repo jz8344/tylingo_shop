@@ -4,7 +4,7 @@
     <div id="stars2"></div>
     <div id="stars3"></div>
 
-    <section class="relative py-20">
+    <section class="relative py-20" style="z-index: 10; position: relative;">
       <div class="container mx-auto px-4">
         <div class="glass-card p-12 text-center max-w-4xl mx-auto">
           <div class="flex justify-center mb-6">
@@ -231,7 +231,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import ProductCard from '@/components/ProductCard.vue'
 import FlashSaleCard from '@/components/FlashSaleCard.vue'
@@ -472,6 +472,9 @@ export default {
       
       // Cargar datos de la API
       await loadAllData()
+      
+      // Esperar a que el DOM esté completamente renderizado
+      await nextTick()
       
       // Inicializar UI
       initCountdown()

@@ -35,7 +35,7 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: -1;
+  z-index: 1;
   overflow: hidden;
 }
 
@@ -87,7 +87,13 @@ body {
   }
 }
 
-/* Glassmorphism UNSC */
+/* Container */
+.container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Glass cards y contenido principal */
 .glass-card {
   background: rgba(10, 25, 47, 0.6);
   border-radius: 16px;
@@ -95,6 +101,8 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(0, 191, 255, 0.3);
+  position: relative;
+  z-index: 10;
 }
 
 .glass-header {

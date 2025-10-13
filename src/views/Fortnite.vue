@@ -4,7 +4,7 @@
   <div id="stars2"></div>
   <div id="stars3"></div>
   
-  <section class="py-16 container mx-auto px-4">
+  <section class="py-16 container mx-auto px-4" style="z-index: 10; position: relative;">
     <div class="text-center mb-10">
       <h1 class="text-4xl font-bold unsc-title">Fortnite</h1>
       <p class="text-blue-300 mt-2">Catálogo desde la base de datos</p>
@@ -178,16 +178,7 @@ export default {
 </script>
 
 <style scoped>
-#stars, #stars2, #stars3 {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: -1;
-  overflow: hidden;
-}
+/* Los estilos de starfield están en global.css para evitar conflictos de scoping */
 
 #stars::before {
   content: '';

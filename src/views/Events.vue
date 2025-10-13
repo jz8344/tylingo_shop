@@ -393,41 +393,7 @@ function createStarField() {
   overflow-x: hidden;
 }
 
-/* Stars background */
-#stars, #stars2, #stars3 {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.star {
-  position: absolute;
-  width: var(--size);
-  height: var(--size);
-  background: white;
-  border-radius: 50%;
-  opacity: var(--opacity);
-  animation: twinkle var(--twinkle) ease-in-out infinite;
-}
-
-.star.cold {
-  background: #a5f3fc;
-  box-shadow: 0 0 2px #a5f3fc;
-}
-
-.star.warm {
-  background: #fde68a;
-  box-shadow: 0 0 2px #fde68a;
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: var(--opacity); }
-  50% { opacity: calc(var(--opacity) * 0.3); }
-}
+/* Los estilos de starfield están en global.css para evitar conflictos de scoping */
 
 /* Container */
 .container {
