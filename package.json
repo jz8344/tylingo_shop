@@ -7,11 +7,15 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
+    "dev:local": "vite",
+    "dev:network": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:network": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
+    "feather-icons": "^4.29.2",
     "mapbox-gl": "^3.15.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.22",

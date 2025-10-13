@@ -3,7 +3,49 @@
  * Servicio base para realizar peticiones HTTP a la API de Laravel
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+/**
+ * Get current host IP or hostname
+ * Detecta automáticamente la IP/host actual de la aplicación
+ */
+function getCurrentHost() {
+  // Si estamos en el navegador
+  if (typeof window !== 'undefined') {
+    const currentHost = window.location.hostname
+    
+    // Si es localhost o 127.0.0.1, usar eso
+    if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+      return 'localhost'
+    }
+    
+    // Si es una IP de red local (192.168.x.x, 10.x.x.x, etc), usar esa IP
+    return currentHost
+  }
+  
+  return 'localhost'
+}
+
+/**
+ * Build API URL dynamically based on current environment
+ */
+function getApiUrl() {
+  // Si hay una variable de entorno explícita, usarla
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  
+  // Detectar el host actual
+  const currentHost = getCurrentHost()
+  
+  // Construir la URL de la API usando el mismo host que el frontend
+  const apiPort = import.meta.env.VITE_API_PORT || '8000'
+  const apiUrl = `http://${currentHost}:${apiPort}/api/v1`
+  
+  console.log(`🌐 API URL detectada automáticamente: ${apiUrl}`)
+  
+  return apiUrl
+}
+
+const API_URL = getApiUrl()
 
 /**
  * Handle HTTP response
