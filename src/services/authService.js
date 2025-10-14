@@ -192,6 +192,13 @@ class AuthService {
       this.setToken(null)
       this.setUser(null)
 
+      console.log('🧹 Datos locales limpiados')
+      console.log('📦 Estado localStorage después del logout:', {
+        token: this.getToken(),
+        user: this.getUser(),
+        allKeys: Object.keys(localStorage).filter(key => key.startsWith('tylingo_'))
+      })
+
       if (!response.ok) {
         console.warn('⚠️ Error en logout API, pero limpieza local completada')
       } else {

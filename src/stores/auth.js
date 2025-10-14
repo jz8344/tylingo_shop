@@ -50,6 +50,13 @@ export const useAuthStore = defineStore('auth', () => {
     const storedToken = authService.getToken()
     const storedUser = authService.getUser()
 
+    console.log('📦 Datos del localStorage:', {
+      hasToken: !!storedToken,
+      hasUser: !!storedUser,
+      tokenPreview: storedToken ? `${storedToken.substring(0, 10)}...` : 'none',
+      userName: storedUser?.name || 'none'
+    })
+
     if (storedToken && storedUser) {
       token.value = storedToken
       user.value = storedUser
@@ -63,6 +70,12 @@ export const useAuthStore = defineStore('auth', () => {
     } else {
       console.log('ℹ️ No hay sesión previa')
     }
+    
+    console.log('🎯 Estado final de inicialización:', {
+      isAuthenticated: !!(token.value && user.value),
+      hasToken: !!token.value,
+      hasUser: !!user.value
+    })
   }
 
   // 📝 Registrar usuario
@@ -153,6 +166,14 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       
       console.log('✅ Store: Logout exitoso')
+      console.log('🧹 Estado después del logout:', {
+        token: token.value,
+        user: user.value,
+        isAuthenticated: isAuthenticated.value,
+        tokenInStorage: !!authService.getToken(),
+        userInStorage: !!authService.getUser()
+      })
+      
       return { success: true, message: result.message }
 
     } catch (err) {

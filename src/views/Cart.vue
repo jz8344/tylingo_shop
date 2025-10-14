@@ -180,10 +180,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
 import mercadoPagoService from '@/services/mercadoPagoService'
 
+const router = useRouter()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
 const processing = ref(false)
 const error = ref(null)
 const buyerEmail = ref('test_user@testuser.com')
@@ -230,10 +234,41 @@ function handleImageError(event) {
   event.target.src = '/img/default.png'
 }
 
+// Show authentication required dialog
+async function showAuthRequiredDialog() {
+  return new Promise((resolve) => {
+    const result = confirm(
+      '🔒 Para proceder con el pago necesitas estar logueado.\n\n¿Deseas ir a la página de login ahora?'
+    )
+    resolve(result)
+  })
+}
+
 async function handleCheckout() {
   try {
     processing.value = true
     error.value = null
+
+    // 🔒 VERIFICAR AUTENTICACIÓN ANTES DE PROCEDER
+    console.log('🔒 Verificando autenticación para checkout...')
+    console.log('Estado auth:', {
+      isAuthenticated: authStore.isAuthenticated,
+      hasToken: !!authStore.token,
+      hasUser: !!authStore.user,
+      cartAuth: cartStore.isUserAuthenticated
+    })
+
+    if (!authStore.isAuthenticated || !authStore.token || !authStore.user) {
+      console.log('❌ Usuario no autenticado, solicitando login')
+      
+      const shouldLogin = await showAuthRequiredDialog()
+      if (shouldLogin) {
+        router.push({ name: 'Login', query: { redirect: '/cart' } })
+      }
+      return
+    }
+
+    console.log('✅ Usuario autenticado, procediendo con checkout')
 
     if (!buyerEmail.value || !buyerName.value) {
       error.value = 'Por favor completa tu email y nombre'
@@ -279,7 +314,20 @@ async function handleCheckout() {
 
   } catch (err) {
     console.error('Error al procesar checkout:', err)
-    error.value = 'Error al procesar el pago. Por favor intenta de nuevo.'
+    
+    // Manejar diferentes tipos de errores
+    if (err.message.includes('iniciar sesión') || err.message.includes('login')) {
+      error.value = '🔒 Debes iniciar sesión para proceder con el pago'
+      
+      // Opcional: redirigir automáticamente al login después de un momento
+      setTimeout(() => {
+        if (confirm('¿Deseas ir a la página de login ahora?')) {
+          window.location.href = '/login'
+        }
+      }, 2000)
+    } else {
+      error.value = err.message || 'Error al procesar el pago. Por favor intenta de nuevo.'
+    }
   } finally {
     processing.value = false
   }

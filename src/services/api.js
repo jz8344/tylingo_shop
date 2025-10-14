@@ -54,19 +54,79 @@ const API_URL = getApiUrl()
  */
 async function handleResponse(response) {
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: response.statusText }))
-    throw new Error(error.message || 'Error en la petición')
+    const error = await response.json().catch(() => ({ 
+      message: response.statusText,
+      status: response.status 
+    }))
+    
+    // Crear un error con información completa
+    const apiError = new Error(error.message || 'Error en la petición')
+    apiError.status = response.status
+    apiError.code = error.code
+    apiError.response = error
+    
+    throw apiError
   }
   return response.json()
+}
+
+/**
+ * Handle authentication errors
+ * @param {Error} error 
+ */
+function handleAuthError(error) {
+  if (error.status === 401) {
+    console.log('🚨 Error 401: Token inválido, limpiando autenticación')
+    
+    // Limpiar tokens inválidos usando las mismas claves que authService
+    localStorage.removeItem('tylingo_auth_token')
+    localStorage.removeItem('tylingo_user_data')
+    
+    // Emitir evento para force logout
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth:force-logout', {
+        detail: { reason: 'Token inválido en API call' }
+      }))
+      
+      // Guardar la página actual para redirigir después del login
+      const currentPath = window.location.pathname
+      if (currentPath !== '/login') {
+        localStorage.setItem('redirect_after_login', currentPath)
+      }
+    }
+  }
+}
+
+/**
+ * Get authentication headers
+ * @returns {Object}
+ */
+function getAuthHeaders() {
+  // Usar la misma clave que en authService.js
+  const token = localStorage.getItem('tylingo_auth_token')
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  }
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+    console.log('🔑 Token agregado a headers:', `${token.substring(0, 10)}...`)
+  } else {
+    console.log('⚠️ No hay token disponible para autenticación')
+  }
+  
+  return headers
 }
 
 /**
  * GET request
  * @param {string} endpoint 
  * @param {Object} params Query parameters
+ * @param {boolean} requireAuth Whether this endpoint requires authentication
  * @returns {Promise}
  */
-export async function get(endpoint, params = {}) {
+export async function get(endpoint, params = {}, requireAuth = false) {
   const url = new URL(`${API_URL}${endpoint}`)
   
   // Agregar parámetros de búsqueda
@@ -77,16 +137,19 @@ export async function get(endpoint, params = {}) {
   })
   
   try {
+    const headers = requireAuth ? getAuthHeaders() : {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }
+    
     const response = await fetch(url.toString(), {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers,
     })
     return handleResponse(response)
   } catch (error) {
     console.error(`Error GET ${endpoint}:`, error)
+    handleAuthError(error)
     throw error
   }
 }
@@ -95,21 +158,25 @@ export async function get(endpoint, params = {}) {
  * POST request
  * @param {string} endpoint 
  * @param {Object} data 
+ * @param {boolean} requireAuth Whether this endpoint requires authentication
  * @returns {Promise}
  */
-export async function post(endpoint, data = {}) {
+export async function post(endpoint, data = {}, requireAuth = false) {
   try {
+    const headers = requireAuth ? getAuthHeaders() : {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }
+    
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers,
       body: JSON.stringify(data),
     })
     return handleResponse(response)
   } catch (error) {
     console.error(`Error POST ${endpoint}:`, error)
+    handleAuthError(error)
     throw error
   }
 }
@@ -118,21 +185,25 @@ export async function post(endpoint, data = {}) {
  * PUT request
  * @param {string} endpoint 
  * @param {Object} data 
+ * @param {boolean} requireAuth Whether this endpoint requires authentication
  * @returns {Promise}
  */
-export async function put(endpoint, data = {}) {
+export async function put(endpoint, data = {}, requireAuth = true) {
   try {
+    const headers = requireAuth ? getAuthHeaders() : {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }
+    
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers,
       body: JSON.stringify(data),
     })
     return handleResponse(response)
   } catch (error) {
     console.error(`Error PUT ${endpoint}:`, error)
+    handleAuthError(error)
     throw error
   }
 }
@@ -140,20 +211,24 @@ export async function put(endpoint, data = {}) {
 /**
  * DELETE request
  * @param {string} endpoint 
+ * @param {boolean} requireAuth Whether this endpoint requires authentication
  * @returns {Promise}
  */
-export async function del(endpoint) {
+export async function del(endpoint, requireAuth = true) {
   try {
+    const headers = requireAuth ? getAuthHeaders() : {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }
+    
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers,
     })
     return handleResponse(response)
   } catch (error) {
     console.error(`Error DELETE ${endpoint}:`, error)
+    handleAuthError(error)
     throw error
   }
 }

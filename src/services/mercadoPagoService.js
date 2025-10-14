@@ -44,11 +44,20 @@ export const mercadoPagoService = {
 
       console.log('Enviando datos a MercadoPago:', payload)
 
-      const response = await api.post('/mercadopago/preference', payload)
-    return response
+      // Usar la ruta protegida que requiere autenticación
+      const response = await api.post('/mercadopago/create-preference', payload, true)
+      return response
     } catch (error) {
-      console.error('Error al crear preferencia de pago:', error.response?.data || error)
-      throw error
+      console.error('Error al crear preferencia de pago:', error)
+      
+      // Manejar errores específicos
+      if (error.status === 401) {
+        throw new Error('Debes iniciar sesión para proceder con el pago')
+      } else if (error.code === 'USER_NOT_AUTHENTICATED') {
+        throw new Error('Debes iniciar sesión para proceder con el pago')
+      } else {
+        throw new Error(error.message || 'Error al procesar el pago. Por favor intenta de nuevo.')
+      }
     }
   },
 
