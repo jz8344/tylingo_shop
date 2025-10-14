@@ -25,18 +25,32 @@
       </button>
     </div>
     
+    <!-- Filtros y ordenamiento -->
+    <ProductFilters
+      v-if="!loading && !error && animeSkins.length > 0"
+      :total-products="filteredProducts.length"
+      :available-types="availableTypes"
+      @filters-changed="updateFilters"
+    />
+    
     <!-- Products Grid -->
-    <div v-else-if="animeSkins.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div v-if="!loading && !error && filteredProducts.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <FortniteProductCard
-        v-for="product in animeSkins"
+        v-for="product in filteredProducts"
         :key="product.id"
         :product="product"
         @add-to-cart="addToCart"
       />
     </div>
 
+    <!-- Empty State with filters -->
+    <div v-else-if="!loading && !error && animeSkins.length > 0 && filteredProducts.length === 0" class="glass-card p-12 text-center">
+      <p class="text-blue-300 text-lg">No se encontraron productos con los filtros aplicados.</p>
+      <p class="text-blue-400 mt-2">Prueba ajustando los filtros de búsqueda.</p>
+    </div>
+
     <!-- Empty State -->
-    <div v-else class="glass-card p-12 text-center">
+    <div v-else-if="!loading && !error && animeSkins.length === 0" class="glass-card p-12 text-center">
       <p class="text-blue-300 text-lg">No hay skins de anime disponibles.</p>
       <p class="text-blue-400 mt-2">Agrega productos desde el panel de administración.</p>
     </div>
@@ -45,19 +59,29 @@
 <script>
 import { ref, onMounted } from 'vue'
 import FortniteProductCard from '@/components/FortniteProductCard.vue'
+import ProductFilters from '@/components/ProductFilters.vue'
 import { getAllProducts } from '@/services/productService'
 import { useCartStore } from '@/stores/cart'
+import { useProductFilters } from '@/composables/useProductFilters'
 
 export default {
   name: 'AnimeSkins',
   components: {
-    FortniteProductCard
+    FortniteProductCard,
+    ProductFilters
   },
   setup() {
     const animeSkins = ref([])
     const loading = ref(false)
     const error = ref(null)
     const cartStore = useCartStore()
+
+    // Usar el composable de filtros
+    const { 
+      filteredAndSortedProducts: filteredProducts, 
+      availableTypes, 
+      updateFilters 
+    } = useProductFilters(animeSkins)
 
     async function loadAnimeSkins() {
       try {
@@ -84,9 +108,11 @@ export default {
           image: product.imagen_url || product.imagen_path || '/img/default.png',
           newBadge: product.etiqueta === 'NUEVO' ? 'NUEVO' : null,
           specialBadge: product.rareza ? { text: product.rareza.toUpperCase(), class: getRarityClass(product.rareza) } : null,
+          publishDate: product.fecha_publicacion,
           tags: [
             { text: 'ANIME', class: 'bg-pink-600' },
-            { text: product.tipo?.toUpperCase() || 'SKIN', class: 'bg-purple-600' }
+            { text: product.tipo?.toUpperCase() || 'SKIN', class: 'bg-purple-600' },
+            { text: product.rareza?.toUpperCase() || 'COMUN', class: getRarityClass(product.rareza || 'comun') }
           ]
         }))
         
@@ -171,10 +197,13 @@ export default {
 
     return {
       animeSkins,
+      filteredProducts,
+      availableTypes,
       loading,
       error,
       addToCart,
-      loadAnimeSkins
+      loadAnimeSkins,
+      updateFilters
     }
   }
 }

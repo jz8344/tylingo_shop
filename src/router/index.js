@@ -36,6 +36,11 @@ const router = createRouter({
       component: () => import('@/views/DisneyInfinity.vue')
     },
     {
+      path: '/another-games',
+      name: 'AnotherGames',
+      component: () => import('@/views/AnotherGames.vue')
+    },
+    {
       path: '/events',
       name: 'Events',
       component: () => import('@/views/Events.vue')

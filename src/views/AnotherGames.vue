@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- Fondo estelar -->
   <div id="stars"></div>
   <div id="stars2"></div>
@@ -6,20 +6,20 @@
   
   <section class="py-16 container mx-auto px-4">
     <div class="text-center mb-10">
-      <h1 class="text-4xl font-bold unsc-title">Call of Duty</h1>
-      <p class="text-blue-300 mt-2">Catálogo desde la base de datos</p>
+      <h1 class="text-4xl font-bold unsc-title">Otros Juegos</h1>
+      <p class="text-blue-300 mt-2">Productos de otros videojuegos y categorías especiales</p>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
-      <p class="mt-4 text-blue-300 text-lg">Cargando productos de Call of Duty...</p>
+      <p class="mt-4 text-blue-300 text-lg">Cargando productos de otros juegos...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="glass-card p-8 text-center">
       <p class="text-red-400 mb-4">{{ error }}</p>
-      <button @click="loadCODProducts" class="btn-unsc px-6 py-3">
+      <button @click="loadOtherGamesProducts" class="btn-unsc px-6 py-3">
         <i data-feather="refresh-cw" class="inline mr-2"></i>
         Reintentar
       </button>
@@ -27,15 +27,15 @@
     
     <!-- Filtros y ordenamiento -->
     <ProductFilters
-      v-if="!loading && !error && codProducts.length > 0"
+      v-if="!loading && !error && otherGamesProducts.length > 0"
       :total-products="filteredProducts.length"
       :available-types="availableTypes"
       @filters-changed="updateFilters"
     />
-
+    
     <!-- Products Grid -->
     <div v-if="!loading && !error && filteredProducts.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      <CallOfDutyProductCard
+      <FortniteProductCard
         v-for="product in filteredProducts"
         :key="product.id"
         :product="product"
@@ -44,54 +44,96 @@
     </div>
 
     <!-- Empty State with filters -->
-    <div v-else-if="!loading && !error && codProducts.length > 0 && filteredProducts.length === 0" class="glass-card p-12 text-center">
+    <div v-else-if="!loading && !error && otherGamesProducts.length > 0 && filteredProducts.length === 0" class="glass-card p-12 text-center">
       <p class="text-blue-300 text-lg">No se encontraron productos con los filtros aplicados.</p>
       <p class="text-blue-400 mt-2">Prueba ajustando los filtros de búsqueda.</p>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="!loading && !error && codProducts.length === 0" class="glass-card p-12 text-center">
-      <p class="text-blue-300 text-lg">No hay productos de Call of Duty disponibles.</p>
+    <div v-else-if="!loading && !error && otherGamesProducts.length === 0" class="glass-card p-12 text-center">
+      <p class="text-blue-300 text-lg">No hay productos de otros juegos disponibles.</p>
       <p class="text-blue-400 mt-2">Agrega productos desde el panel de administración.</p>
     </div>
   </section>
 </template>
+
 <script>
 import { ref, onMounted } from 'vue'
-import CallOfDutyProductCard from '@/components/CallOfDutyProductCard.vue'
+import FortniteProductCard from '@/components/FortniteProductCard.vue'
 import ProductFilters from '@/components/ProductFilters.vue'
-import { getProductsByGame } from '@/services/productService'
+import { getAllProducts } from '@/services/productService'
 import { useCartStore } from '@/stores/cart'
 import { useProductFilters } from '@/composables/useProductFilters'
 
 export default {
-  name: 'CallOfDuty',
+  name: 'AnotherGames',
   components: {
-    CallOfDutyProductCard,
+    FortniteProductCard,
     ProductFilters
   },
   setup() {
-    const cartStore = useCartStore()
-    const codProducts = ref([])
+    const otherGamesProducts = ref([])
     const loading = ref(false)
     const error = ref(null)
+    const cartStore = useCartStore()
 
     // Usar el composable de filtros
     const { 
       filteredAndSortedProducts: filteredProducts, 
       availableTypes, 
       updateFilters 
-    } = useProductFilters(codProducts)
+    } = useProductFilters(otherGamesProducts)
 
-    async function loadCODProducts() {
+    // Lista de videojuegos y categorías excluidas
+    const excludedGames = [
+      'fortnite',
+      'call of duty',
+      'disney',
+      'disney infinity',
+      'kingdom hearts',
+      'epic mickey',
+      'los increibles'
+    ]
+
+    const excludedCategories = [
+      'anime',
+      'disney',
+      'moneda'
+    ]
+
+    async function loadOtherGamesProducts() {
       try {
         loading.value = true
         error.value = null
-        console.log('Cargando productos de Call of Duty desde API...')
+        console.log('Cargando productos de otros juegos desde API...')
         
-        const data = await getProductsByGame('call of duty')
+        const data = await getAllProducts()
         
-        codProducts.value = data.map(product => ({
+        // Filtrar productos que NO pertenezcan a las categorías principales
+        const otherProducts = data.filter(product => {
+          const videojuego = product.videojuego?.toLowerCase() || ''
+          const categoria = product.categoria?.toLowerCase() || ''
+          const etiqueta = product.etiqueta?.toLowerCase() || ''
+          const tipo = product.tipo?.toLowerCase() || ''
+          
+          // Excluir si el videojuego está en la lista de excluidos
+          const isExcludedGame = excludedGames.some(game => 
+            videojuego.includes(game)
+          )
+          
+          // Excluir si la categoría está en la lista de excluidos
+          const isExcludedCategory = excludedCategories.some(cat => 
+            categoria.includes(cat) || etiqueta.includes(cat)
+          )
+          
+          // Excluir tipos específicos (monedas ya tienen su propia sección)
+          const isExcludedType = tipo === 'moneda'
+          
+          // Incluir si NO está excluido
+          return !isExcludedGame && !isExcludedCategory && !isExcludedType
+        })
+        
+        otherGamesProducts.value = otherProducts.map(product => ({
           id: product.id,
           name: product.nombre,
           description: product.descripcion || '',
@@ -100,18 +142,24 @@ export default {
           discount: product.es_oferta ? Math.round(((product.precio - (product.precio_oferta || product.precio)) / product.precio) * 100) : 0,
           image: product.imagen_url || product.imagen_path || '/img/default.png',
           newBadge: product.etiqueta === 'NUEVO' ? 'NUEVO' : null,
-          badge: product.rareza ? { text: product.rareza.toUpperCase(), class: getRarityClass(product.rareza) } : null,
+          specialBadge: product.rareza ? { text: product.rareza.toUpperCase(), class: getRarityClass(product.rareza) } : null,
           publishDate: product.fecha_publicacion,
           tags: [
-            { text: product.videojuego?.toUpperCase() || 'CALL OF DUTY', class: 'bg-gray-700' },
-            { text: product.rareza?.toUpperCase() || 'COMUN', class: getRarityClass(product.rareza || 'comun') },
-            { text: product.tipo?.toUpperCase() || 'PERSONAJE', class: getTypeClass(product.tipo) }
+            { text: product.videojuego?.toUpperCase() || 'OTROS', class: 'bg-teal-600' },
+            { text: product.tipo?.toUpperCase() || 'PRODUCTO', class: getTypeClass(product.tipo) },
+            { text: product.rareza?.toUpperCase() || 'COMUN', class: getRarityClass(product.rareza || 'comun') }
           ]
         }))
         
-        console.log('Productos de Call of Duty cargados:', codProducts.value.length)
+        console.log('Productos de otros juegos cargados:', otherGamesProducts.value.length)
+        console.log('Productos filtrados:', otherProducts.map(p => ({ 
+          nombre: p.nombre, 
+          videojuego: p.videojuego, 
+          categoria: p.categoria,
+          tipo: p.tipo 
+        })))
       } catch (err) {
-        error.value = 'Error al cargar productos de Call of Duty'
+        error.value = 'Error al cargar productos de otros juegos'
         console.error('Error:', err)
       } finally {
         loading.value = false
@@ -134,7 +182,6 @@ export default {
         'personaje': 'bg-green-600',
         'skin': 'bg-purple-600',
         'avatar': 'bg-indigo-600',
-        'moneda': 'bg-yellow-600',
         'objeto': 'bg-orange-600',
         'dlc': 'bg-red-600',
         'pack': 'bg-blue-600'
@@ -149,7 +196,7 @@ export default {
         descripcion: product.description || product.name,
         precio: product.originalPrice || product.price,
         precio_oferta: product.originalPrice ? product.price : null,
-        videojuego: 'Call of Duty',
+        videojuego: product.tags?.[0]?.text || 'Otros Juegos',
         imagen_url: product.image,
         imagen_path: product.image
       }
@@ -161,7 +208,7 @@ export default {
     }
 
     onMounted(async () => {
-      await loadCODProducts()
+      await loadOtherGamesProducts()
       createStarField()
       if (window.feather) {
         window.feather.replace()
@@ -201,13 +248,13 @@ export default {
     }
 
     return {
-      codProducts,
+      otherGamesProducts,
       filteredProducts,
       availableTypes,
       loading,
       error,
       addToCart,
-      loadCODProducts,
+      loadOtherGamesProducts,
       updateFilters
     }
   }
