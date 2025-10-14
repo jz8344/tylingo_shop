@@ -137,6 +137,24 @@ body {
   transform: translateY(-1px);
 }
 
+/* Botón UNSC pequeño para navbar */
+.btn-unsc-sm {
+  background: linear-gradient(45deg, #00BFFF, #0080FF);
+  border: 1px solid #00BFFF;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  font-size: 0.75rem;
+}
+
+.btn-unsc-sm:hover {
+  background: linear-gradient(45deg, #0080FF, #0066CC);
+  box-shadow: 0 0 15px rgba(0, 191, 255, 0.6);
+  transform: translateY(-1px);
+}
+
 /* Headers UNSC */
 .unsc-title {
   background: linear-gradient(45deg, #00BFFF, #0080FF);

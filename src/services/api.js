@@ -158,10 +158,16 @@ export async function del(endpoint) {
   }
 }
 
+// Export named functions for external use
+export { getApiUrl, getCurrentHost }
+
+// Export default object with all API methods
 export default {
   get,
   post,
   put,
   delete: del,
-  API_URL
+  API_URL,
+  getApiUrl,
+  getCurrentHost
 }

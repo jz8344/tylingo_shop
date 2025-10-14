@@ -16,8 +16,7 @@
       </main>
       <Footer />
       
-      <!-- API Debug Panel (solo en desarrollo) -->
-      <ApiDebugPanel />
+
     </div>
   </div>
 </template>
@@ -26,14 +25,13 @@
 import { ref, onMounted } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
-import ApiDebugPanel from '@/components/ApiDebugPanel.vue'
+
 
 export default {
   name: 'App',
   components: {
     Navbar,
-    Footer,
-    ApiDebugPanel
+    Footer
   },
   setup() {
     const isLoading = ref(true)
