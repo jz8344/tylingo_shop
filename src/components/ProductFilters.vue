@@ -266,4 +266,51 @@ select:focus {
 input:focus {
   box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
 }
+
+/* Mejorar visibilidad de texto en selectores */
+select {
+  color: #e2e8f0; /* text-slate-200 - más claro y visible */
+  background-color: #1e293b; /* slate-800 - fondo más oscuro */
+}
+
+select option {
+  color: #f1f5f9; /* text-slate-100 - texto muy claro */
+  background-color: #0f172a; /* slate-900 - fondo muy oscuro */
+}
+
+select option:checked, 
+select option:hover {
+  background-color: #0891b2; /* cyan-600 */
+  color: #ffffff; /* blanco para máximo contraste */
+}
+
+input {
+  color: #e2e8f0; /* text-slate-200 */
+  background-color: #1e293b; /* slate-800 */
+}
+
+input::placeholder {
+  color: #64748b; /* slate-500 - placeholder más visible */
+}
+
+input:focus {
+  color: #f8fafc; /* text-slate-50 - más claro al enfocar */
+  background-color: #1e293b;
+}
+
+/* Asegurar que los elementos sean legibles en todos los estados */
+.bg-unsc\/10 select,
+.bg-unsc\/10 input {
+  color: #e2e8f0 !important;
+  background-color: #1e293b !important;
+}
+
+/* Border más visible */
+select, input {
+  border-color: #475569; /* slate-600 - border más visible */
+}
+
+select:focus, input:focus {
+  border-color: #06b6d4; /* cyan-500 */
+}
 </style>
